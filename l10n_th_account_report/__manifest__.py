@@ -8,7 +8,7 @@
  'license': 'AGPL-3',
  'category': 'Accounting',
  'depends': ['account',
-             'account_invoice_tax_detail',
+             'account_invoice_tax_invoice',
              'xlsx_imexrpt',
              'date_range',
              'l10n_th_partner',
