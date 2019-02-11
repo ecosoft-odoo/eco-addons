@@ -10,6 +10,7 @@
  'depends': ['account',
              ],
  'data': ['security/ir.model.access.csv',
+          'wizard/create_withholding_tax_cert.xml',
           'views/withholding_tax_cert.xml',
           ],
  'installable': True,

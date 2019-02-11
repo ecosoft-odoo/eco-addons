@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
@@ -32,7 +31,6 @@ class WithholdingTaxCert(models.Model):
         readonly=True,
         related='payment_id.name',
         store=True,
-        size=500,
     )
     date = fields.Date(
         string='Date',
@@ -50,15 +48,26 @@ class WithholdingTaxCert(models.Model):
         copy=False,
     )
     payment_id = fields.Many2one(
-        'account.payment',
+        comodel_name='account.payment',
         string='Payment',
         copy=False,
+        readonly=True,
+        states={'draft': [('readonly', False)]},
+        domain="[('line_ids.partner_id', '=', supplier_partner_id)]"
+        # "('line_ids.account_id', 'in', wt_account_ids)]",
     )
+    # wt_account_ids = fields.Many2many(
+    #     comodel_name='account.move',
+    #     string='Withholding Tax Account',
+    #     required=True,
+    #     copy=True,
+    # )
     company_partner_id = fields.Many2one(
         'res.partner',
         string='Company',
         readonly=True,
         copy=False,
+        default=lambda self: self.env.user.company_id.partner_id,
     )
     supplier_partner_id = fields.Many2one(
         'res.partner',
@@ -78,41 +87,21 @@ class WithholdingTaxCert(models.Model):
         string='Supplier Tax ID',
         readonly=True,
     )
-    supplier_address = fields.Char(
-        string='Supplier Address',
-        compute='_compute_address',
-        readonly=True,
-    )
-    company_address = fields.Char(
-        string='Company Address',
-        compute='_compute_address',
-        readonly=True,
-    )
     income_tax_form = fields.Selection(
         INCOME_TAX_FORM,
         string='Income Tax Form',
         required=True,
+        readonly=True,
         copy=False,
+        states={'draft': [('readonly', False)]},
     )
-    wht_line = fields.One2many(
+    wt_line = fields.One2many(
         'withholding.tax.cert.line',
         'cert_id',
         string='Withholding Line',
         readonly=True,
         states={'draft': [('readonly', False)]},
         copy=False,
-    )
-    sequence = fields.Integer(
-        string='WHT Sequence',
-        readonly=True,
-        copy=False,
-        help="Running sequence for the same period. Reset every period",
-    )
-    period_id = fields.Many2one(
-        comodel_name='date.range',
-        string='Period',
-        domain=[('type_id.name', '=', 'Period')],
-        required=True,
     )
     tax_payer = fields.Selection(
         TAX_PAYER,
@@ -123,11 +112,6 @@ class WithholdingTaxCert(models.Model):
         states={'draft': [('readonly', False)]},
         copy=False,
     )
-    # _sql_constraints = [
-    #     ('wht_seq_unique',
-    #      'unique (period_id, sequence, income_tax_form)',
-    #      'WHT Sequence must be unique!'),
-    # ]
 
     # Computed fields to be displayed in WHT Cert.
     x_voucher_number = fields.Char(compute='_compute_cert_fields')
@@ -141,7 +125,7 @@ class WithholdingTaxCert(models.Model):
     x_pnd1 = fields.Char(compute='_compute_cert_fields')
     x_pnd3 = fields.Char(compute='_compute_cert_fields')
     x_pnd53 = fields.Char(compute='_compute_cert_fields')
-    x_sequence_display = fields.Char(compute='_compute_cert_fields')
+    x__display = fields.Char(compute='_compute_cert_fields')
     x_withholding = fields.Char(compute='_compute_cert_fields')
     x_paid_one_time = fields.Char(compute='_compute_cert_fields')
     x_total_base = fields.Float(compute='_compute_cert_fields')
@@ -166,6 +150,13 @@ class WithholdingTaxCert(models.Model):
     x_type_8_desc = fields.Char(compute='_compute_cert_fields')
     x_signature = fields.Char(compute='_compute_cert_fields')
 
+    @api.constrains('wt_line')
+    def _check_wt_line(self):
+        for cert in self:
+            for line in cert.wt_line:
+                if line.amount != line.base * line.wt_percent / 100:
+                    raise ValidationError(_('WT Base/Percent/Tax mismatch!'))
+
     @api.multi
     def _compute_cert_fields(self):
         for rec in self:
@@ -186,7 +177,6 @@ class WithholdingTaxCert(models.Model):
             rec.x_pnd1 = rec.income_tax_form == 'pnd1' and 'X' or ''
             rec.x_pnd3 = rec.income_tax_form == 'pnd3' and 'X' or ''
             rec.x_pnd53 = rec.income_tax_form == 'pnd53' and 'X' or ''
-            rec.x_sequence_display = rec.sequence_display
             rec.x_withholding = \
                 rec.tax_payer == 'withholding' and 'X' or ''
             rec.x_paid_one_time = \
@@ -213,46 +203,29 @@ class WithholdingTaxCert(models.Model):
             rec.x_type_8_desc = rec._get_summary_by_type('desc', '8')
             rec.x_signature = rec.create_uid.display_name
 
-    @api.multi
-    @api.depends('supplier_partner_id', 'company_partner_id')
-    def _compute_address(self):
-        for rec in self:
-            rec.company_address = 'XXXXXXXXXXX'
-            rec.supplier_address = 'YYYYYYYYYYYY'
+    @api.onchange('payment_id')
+    def _onchange_payment_id(self):
+        """ Prepare withholding cert """
+        wt_account_ids = self._context.get('wt_account_ids', [])
+        self.date = self.payment_id.payment_date
+        self.supplier_partner_id = self.payment_id.partner_id
+        # Hook to find wt move lines
+        wt_move_lines = self._get_wt_move_line(self.payment_id, wt_account_ids)
+        CertLine = self.env['withholding.tax.cert.line']
+        for line in wt_move_lines:
+            self.wt_line += CertLine.new(self._prepare_wt_line(line))
 
     @api.model
-    def _prepare_wht_line(self, voucher):
-        wht_lines = []
-        for line in voucher.tax_line_wht:
-            vals = {
-                'voucher_tax_id': line.id,
-                'invoice_id': line.invoice_id.id,
-                'wht_cert_income_type': line.wht_cert_income_type,
-                'wht_cert_income_desc': line.wht_cert_income_desc,
-                'base': -line.base,
-                'amount': -line.amount,
-            }
-            wht_lines.append((0, 0, vals))
-        return wht_lines
+    def _prepare_wt_line(self, move_line):
+        """ Hook point to prepare wt_line """
+        return {'amount': abs(move_line.balance),
+                'ref_move_line_id': move_line.id}
 
     @api.model
-    def default_get(self, fields):
-        res = super().default_get(fields)
-        active_model = self._context.get('active_model')
-        active_id = self._context.get('active_id')
-        if active_model == 'account.voucher':
-            voucher = self.env[active_model].browse(active_id)
-            company_partner = self.env.user.company_id.partner_id
-            supplier = voucher.partner_id
-            res['voucher_id'] = voucher.id
-            res['date'] = voucher.date_value
-            res['company_partner_id'] = company_partner.id
-            res['supplier_partner_id'] = supplier.id
-            res['income_tax_form'] = (voucher.income_tax_form or
-                                      supplier.income_tax_form)
-            res['tax_payer'] = (voucher.tax_payer or False)
-            res['wht_line'] = self._prepare_wht_line(voucher)
-        return res
+    def _get_wt_move_line(self, payment, wt_account_ids):
+        """ Hook point to get wt_move_lines """
+        return payment.move_line_ids.filtered(
+            lambda l: l.account_id.id in wt_account_ids)
 
     @api.multi
     def action_draft(self):
@@ -261,7 +234,6 @@ class WithholdingTaxCert(models.Model):
 
     @api.multi
     def action_done(self):
-        self._assign_wht_sequence()
         self.write({'state': 'done'})
         return True
 
@@ -271,33 +243,18 @@ class WithholdingTaxCert(models.Model):
         return True
 
     @api.multi
-    def _assign_wht_sequence(self):
-        """ Only if not assigned, this method will assign next sequence """
-        Period = self.env['account.period']
-        for cert in self:
-            if not cert.income_tax_form:
-                raise ValidationError(_("No Income Tax Form selected, "
-                                        "can not assign WHT Sequence"))
-            if cert.sequence:
-                continue
-            period = Period.find(cert.date)[:1]
-            sequence = \
-                cert._get_next_wht_sequence(cert.income_tax_form, period)
-            cert.write({'sequence': sequence})
-
-    @api.multi
     def _get_summary_by_type(self, column, ttype='all'):
         self.ensure_one()
-        wht_lines = self.wht_line
+        wt_lines = self.wt_line
         if ttype != 'all':
-            wht_lines = wht_lines.filtered(lambda l:
-                                           l.wht_cert_income_type == ttype)
+            wt_lines = wt_lines.filtered(lambda l:
+                                         l.wt_cert_income_type == ttype)
         if column == 'base':
-            return round(sum([x.base for x in wht_lines]), 2)
+            return round(sum([x.base for x in wt_lines]), 2)
         if column == 'tax':
-            return round(sum([x.amount for x in wht_lines]), 2)
+            return round(sum([x.amount for x in wt_lines]), 2)
         if column == 'desc':
-            descs = [x.wht_cert_income_desc for x in wht_lines]
+            descs = [x.wt_cert_income_desc for x in wt_lines]
             descs = filter(lambda x: x and x != '', descs)
             desc = ', '.join(descs)
             return desc
@@ -321,12 +278,12 @@ class WithholdingTaxCertLine(models.Model):
         string='WHT Cert',
         index=True,
     )
-    wht_cert_income_type = fields.Selection(
+    wt_cert_income_type = fields.Selection(
         WHT_CERT_INCOME_TYPE,
         string='Type of Income',
         required=True,
     )
-    wht_cert_income_desc = fields.Char(
+    wt_cert_income_desc = fields.Char(
         string='Income Description',
         size=500,
         required=False,
@@ -335,15 +292,33 @@ class WithholdingTaxCertLine(models.Model):
         string='Base Amount',
         readonly=False,
     )
+    wt_percent = fields.Float(
+        string='% Tax',
+    )
     amount = fields.Float(
         string='Tax Amount',
         readonly=False,
     )
+    ref_move_line_id = fields.Many2one(
+        comodel_name='account.move.line',
+        string='Ref Journal Item',
+        help="Reference back to journal item which create wt move",
+    )
 
-    @api.onchange('wht_cert_income_type')
-    def _onchange_wht_cert_income_type(self):
-        if self.wht_cert_income_type:
+    @api.onchange('wt_cert_income_type')
+    def _onchange_wt_cert_income_type(self):
+        if self.wt_cert_income_type:
             select_dict = dict(WHT_CERT_INCOME_TYPE)
-            self.wht_cert_income_desc = select_dict[self.wht_cert_income_type]
+            self.wt_cert_income_desc = select_dict[self.wt_cert_income_type]
         else:
-            self.wht_cert_income_desc = False
+            self.wt_cert_income_desc = False
+
+    @api.onchange('wt_percent')
+    def _onchange_wt_percent(self):
+        if self.base:
+            self.amount = self.base * self.wt_percent / 100
+        if self.amount:
+            if self.wt_percent:
+                self.base = self.amount * 100 / self.wt_percent
+            else:
+                self.base = 0.0
