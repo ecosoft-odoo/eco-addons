@@ -53,21 +53,16 @@ class WithholdingTaxCert(models.Model):
         copy=False,
         readonly=True,
         states={'draft': [('readonly', False)]},
-        domain="[('line_ids.partner_id', '=', supplier_partner_id)]"
-        # "('line_ids.account_id', 'in', wt_account_ids)]",
+        domain="[('partner_id', '=', supplier_partner_id)]",
+        ondelete='restrict',
     )
-    # wt_account_ids = fields.Many2many(
-    #     comodel_name='account.move',
-    #     string='Withholding Tax Account',
-    #     required=True,
-    #     copy=True,
-    # )
     company_partner_id = fields.Many2one(
         'res.partner',
         string='Company',
         readonly=True,
         copy=False,
         default=lambda self: self.env.user.company_id.partner_id,
+        ondelete='restrict',
     )
     supplier_partner_id = fields.Many2one(
         'res.partner',
@@ -76,6 +71,7 @@ class WithholdingTaxCert(models.Model):
         readonly=True,
         states={'draft': [('readonly', False)]},
         copy=False,
+        ondelete='restrict',
     )
     company_taxid = fields.Char(
         related='company_partner_id.vat',
@@ -113,95 +109,12 @@ class WithholdingTaxCert(models.Model):
         copy=False,
     )
 
-    # Computed fields to be displayed in WHT Cert.
-    x_voucher_number = fields.Char(compute='_compute_cert_fields')
-    x_date_value = fields.Date(compute='_compute_cert_fields')
-    x_company_name = fields.Char(compute='_compute_cert_fields')
-    x_supplier_name = fields.Char(compute='_compute_cert_fields')
-    x_company_taxid = fields.Char(compute='_compute_cert_fields')
-    x_supplier_taxid = fields.Char(compute='_compute_cert_fields')
-    x_supplier_address = fields.Char(compute='_compute_cert_fields')
-    x_company_address = fields.Char(compute='_compute_cert_fields')
-    x_pnd1 = fields.Char(compute='_compute_cert_fields')
-    x_pnd3 = fields.Char(compute='_compute_cert_fields')
-    x_pnd53 = fields.Char(compute='_compute_cert_fields')
-    x__display = fields.Char(compute='_compute_cert_fields')
-    x_withholding = fields.Char(compute='_compute_cert_fields')
-    x_paid_one_time = fields.Char(compute='_compute_cert_fields')
-    x_total_base = fields.Float(compute='_compute_cert_fields')
-    x_total_tax = fields.Float(compute='_compute_cert_fields')
-    x_type_1_base = fields.Float(compute='_compute_cert_fields')
-    x_type_1_tax = fields.Float(compute='_compute_cert_fields')
-    x_type_2_base = fields.Float(compute='_compute_cert_fields')
-    x_type_2_tax = fields.Float(compute='_compute_cert_fields')
-    x_type_3_base = fields.Float(compute='_compute_cert_fields')
-    x_type_3_tax = fields.Float(compute='_compute_cert_fields')
-    x_type_5_base = fields.Float(compute='_compute_cert_fields')
-    x_type_5_tax = fields.Float(compute='_compute_cert_fields')
-    x_type_5_desc = fields.Char(compute='_compute_cert_fields')
-    x_type_6_base = fields.Float(compute='_compute_cert_fields')
-    x_type_6_tax = fields.Float(compute='_compute_cert_fields')
-    x_type_6_desc = fields.Char(compute='_compute_cert_fields')
-    x_type_7_base = fields.Float(compute='_compute_cert_fields')
-    x_type_7_tax = fields.Float(compute='_compute_cert_fields')
-    x_type_7_desc = fields.Char(compute='_compute_cert_fields')
-    x_type_8_base = fields.Float(compute='_compute_cert_fields')
-    x_type_8_tax = fields.Float(compute='_compute_cert_fields')
-    x_type_8_desc = fields.Char(compute='_compute_cert_fields')
-    x_signature = fields.Char(compute='_compute_cert_fields')
-
     @api.constrains('wt_line')
     def _check_wt_line(self):
         for cert in self:
             for line in cert.wt_line:
                 if line.amount != line.base * line.wt_percent / 100:
                     raise ValidationError(_('WT Base/Percent/Tax mismatch!'))
-
-    @api.multi
-    def _compute_cert_fields(self):
-        for rec in self:
-            company = self.env.user.company_id.partner_id
-            supplier = rec.supplier_partner_id
-            rec.x_voucher_number = rec.voucher_id.number
-            rec.x_date_value = rec.date
-            rec.x_company_name = company.name
-            rec.x_supplier_name = ' '.join(list(
-                filter(lambda l: l is not False, [supplier.title.name,
-                                                  supplier.name])))
-            rec.x_company_taxid = \
-                company.vat and len(company.vat) == 13 and company.vat or ''
-            rec.x_supplier_taxid = \
-                supplier.vat and len(supplier.vat) == 13 and supplier.vat or ''
-            rec.x_supplier_address = rec.supplier_address
-            rec.x_company_address = rec.company_address
-            rec.x_pnd1 = rec.income_tax_form == 'pnd1' and 'X' or ''
-            rec.x_pnd3 = rec.income_tax_form == 'pnd3' and 'X' or ''
-            rec.x_pnd53 = rec.income_tax_form == 'pnd53' and 'X' or ''
-            rec.x_withholding = \
-                rec.tax_payer == 'withholding' and 'X' or ''
-            rec.x_paid_one_time = \
-                rec.tax_payer == 'paid_one_time' and 'X' or ''
-            rec.x_total_base = rec._get_summary_by_type('base')
-            rec.x_total_tax = rec._get_summary_by_type('tax')
-            rec.x_type_1_base = rec._get_summary_by_type('base', '1')
-            rec.x_type_1_tax = rec._get_summary_by_type('tax', '1')
-            rec.x_type_2_base = rec._get_summary_by_type('base', '2')
-            rec.x_type_2_tax = rec._get_summary_by_type('tax', '2')
-            rec.x_type_3_base = rec._get_summary_by_type('base', '3')
-            rec.x_type_3_tax = rec._get_summary_by_type('tax', '3')
-            rec.x_type_5_base = rec._get_summary_by_type('base', '5')
-            rec.x_type_5_tax = rec._get_summary_by_type('tax', '5')
-            rec.x_type_5_desc = rec._get_summary_by_type('desc', '5')
-            rec.x_type_6_base = rec._get_summary_by_type('base', '6')
-            rec.x_type_6_tax = rec._get_summary_by_type('tax', '6')
-            rec.x_type_6_desc = rec._get_summary_by_type('desc', '6')
-            rec.x_type_7_base = rec._get_summary_by_type('base', '7')
-            rec.x_type_7_tax = rec._get_summary_by_type('tax', '7')
-            rec.x_type_7_desc = rec._get_summary_by_type('desc', '7')
-            rec.x_type_8_base = rec._get_summary_by_type('base', '8')
-            rec.x_type_8_tax = rec._get_summary_by_type('tax', '8')
-            rec.x_type_8_desc = rec._get_summary_by_type('desc', '8')
-            rec.x_signature = rec.create_uid.display_name
 
     @api.onchange('payment_id')
     def _onchange_payment_id(self):
@@ -218,14 +131,39 @@ class WithholdingTaxCert(models.Model):
     @api.model
     def _prepare_wt_line(self, move_line):
         """ Hook point to prepare wt_line """
-        return {'amount': abs(move_line.balance),
+        # With withholding.tax.move, get % tax
+        WTMove = self.env['withholding.tax.move']
+        wt_move = WTMove.search([('wt_account_move_id', '=',
+                                  move_line.move_id.id)])
+        base = 0.0
+        percent = 0.0
+        tax = abs(move_line.balance)
+        if wt_move:
+            if wt_move.statement_id.base:
+                percent = round(wt_move.statement_id.tax /
+                                wt_move.statement_id.base, 2)
+                if percent:
+                    base = tax / percent
+        vals = {'wt_percent': percent * 100,
+                'base': base,
+                'amount': abs(move_line.balance),
                 'ref_move_line_id': move_line.id}
+        return vals
 
     @api.model
     def _get_wt_move_line(self, payment, wt_account_ids):
         """ Hook point to get wt_move_lines """
-        return payment.move_line_ids.filtered(
-            lambda l: l.account_id.id in wt_account_ids)
+        # Move line from payment itself
+        wt_move_lines = payment.move_line_ids
+        # From other related withholding move line (l10n_it_withholding_tax)
+        if 'withholding_tax_generated_by_move_id' in payment.move_line_ids:
+            payment_moves = payment.move_line_ids.mapped('move_id')
+            wt_moves = self.env['account.move.line'].search([
+                ('withholding_tax_generated_by_move_id', 'in',
+                 payment_moves.ids)]).mapped('move_id')
+            wt_move_lines += wt_moves.mapped('line_ids')
+        return wt_move_lines.\
+            filtered(lambda l: l.account_id.id in wt_account_ids)
 
     @api.multi
     def action_draft(self):
@@ -241,33 +179,6 @@ class WithholdingTaxCert(models.Model):
     def action_cancel(self):
         self.write({'state': 'cancel'})
         return True
-
-    @api.multi
-    def _get_summary_by_type(self, column, ttype='all'):
-        self.ensure_one()
-        wt_lines = self.wt_line
-        if ttype != 'all':
-            wt_lines = wt_lines.filtered(lambda l:
-                                         l.wt_cert_income_type == ttype)
-        if column == 'base':
-            return round(sum([x.base for x in wt_lines]), 2)
-        if column == 'tax':
-            return round(sum([x.amount for x in wt_lines]), 2)
-        if column == 'desc':
-            descs = [x.wt_cert_income_desc for x in wt_lines]
-            descs = filter(lambda x: x and x != '', descs)
-            desc = ', '.join(descs)
-            return desc
-
-    @api.model
-    def _prepare_address(self, partner):
-        # TODO: XXX
-        address_list = [partner.street, partner.street2, partner.city,
-                        partner.township_id.name, partner.district_id.name,
-                        partner.province_id.name, partner.zip, ]
-        address_list = filter(lambda x: x is not False and x != '',
-                              address_list)
-        return ' '.join(address_list).strip()
 
 
 class WithholdingTaxCertLine(models.Model):
@@ -302,6 +213,7 @@ class WithholdingTaxCertLine(models.Model):
     ref_move_line_id = fields.Many2one(
         comodel_name='account.move.line',
         string='Ref Journal Item',
+        readonly=True,
         help="Reference back to journal item which create wt move",
     )
 

@@ -8,10 +8,12 @@
  'license': 'AGPL-3',
  'category': 'Accounting',
  'depends': ['account',
+             'l10n_it_withholding_tax',
              ],
  'data': ['security/ir.model.access.csv',
           'wizard/create_withholding_tax_cert.xml',
           'views/withholding_tax_cert.xml',
+          'views/account_payment_view.xml'
           ],
  'installable': True,
  'development_status': '???',
