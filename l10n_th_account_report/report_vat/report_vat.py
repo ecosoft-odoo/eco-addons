@@ -25,10 +25,10 @@ class ReportVAT(models.TransientModel):
         string='Account',
         required=True,
     )
-    period_id = fields.Many2one(
+    date_range_id = fields.Many2one(
         comodel_name='date.range',
         string='Period',
-        domain=[('type_id.name', '=', 'Period')],
+        domain=[('type_id.fiscal_year', '=', False)],
         required=True,
     )
     date_from = fields.Date(
@@ -52,10 +52,10 @@ class ReportVAT(models.TransientModel):
     def _onchange_tax_id(self):
         self.account_id = self.tax_id.account_id
 
-    @api.onchange('period_id')
-    def _onchange_period_id(self):
-        self.date_from = self.period_id.date_start
-        self.date_to = self.period_id.date_end
+    @api.onchange('date_range_id')
+    def _onchange_date_range_id(self):
+        self.date_from = self.date_range_id.date_start
+        self.date_to = self.date_range_id.date_end
 
     @api.multi
     def _compute_results(self):

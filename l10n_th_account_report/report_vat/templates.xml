@@ -12,7 +12,7 @@
                     'VAT Report': {
                         '_HEAD_': {
                             'A2': 'tax_id.type_tax_use${value and value == "sale" and "Sales VAT Report" or "Purchase VAT Report"}',
-                            'C4': 'period_id.display_name${value or ""}',
+                            'C4': 'date_range_id.display_name${value or ""}',
                             'C5': 'company_id.display_name${value or ""}',
                             'G4': 'company_id.partner_id.vat${value or ""}#{align=left;number_format=text}',
                             'G4': 'company_id.partner_id.branch${value or ""}#{align=left;number_format=text}',

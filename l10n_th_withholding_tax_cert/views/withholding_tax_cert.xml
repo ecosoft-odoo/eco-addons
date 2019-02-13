@@ -83,7 +83,7 @@
         </record>
 
         <record id="action_withholding_tax_cert_menu" model="ir.actions.act_window">
-            <field name="name">Withholding Certs.</field>
+            <field name="name">WT Certificates</field>
             <field name="res_model">withholding.tax.cert</field>
             <field name="view_type">form</field>
             <field name="view_id" ref="view_withholding_tax_cert_tree"/>
@@ -91,7 +91,7 @@
 
         <menuitem id="menu_withholding_tax_cert"
           action="action_withholding_tax_cert_menu"
-          parent="account.menu_finance_payables_documents" sequence="30"/>
+          parent="l10n_it_withholding_tax.wt_main" sequence="30"/>
 
     </data>
 </odoo>
