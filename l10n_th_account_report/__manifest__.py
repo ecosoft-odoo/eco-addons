@@ -9,7 +9,7 @@
  'category': 'Accounting',
  'depends': ['account',
              'account_move_tax_invoice',
-             'xlsx_imexrpt',
+             'excel_import_export',
              'date_range',
              'l10n_th_partner',
              ],

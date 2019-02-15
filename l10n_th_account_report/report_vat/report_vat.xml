@@ -4,7 +4,7 @@
     <record id="report_vat_wizard" model="ir.ui.view">
         <field name="name">report.vat</field>
         <field name="model">report.vat</field>
-        <field name="inherit_id" ref="xlsx_imexrpt.xlsx_report_view"/>
+        <field name="inherit_id" ref="excel_import_export.xlsx_report_view"/>
         <field name="mode">primary</field>
         <field name="arch" type="xml">
             <xpath expr="//group[@name='criteria']" position="inside">

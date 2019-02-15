@@ -8,7 +8,7 @@
  'license': 'AGPL-3',
  'category': 'Human Resources',
  'depends': ['hr',
-             'xlsx_imexrpt'
+             'excel_import_export'
              ],
  'data': ['security/security.xml',
           'security/ir.model.access.csv',

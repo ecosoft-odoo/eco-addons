@@ -6,7 +6,7 @@
  'author': 'Ecosoft,Odoo Community Association (OCA)',
  'license': 'AGPL-3',
  'category': 'Accounting',
- 'depends': ['xlsx_imexrpt',
+ 'depends': ['excel_import_export',
              'date_range',
              'l10n_th_partner',
              'l10n_th_withholding_tax_cert'],
