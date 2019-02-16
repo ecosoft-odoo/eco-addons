@@ -2,22 +2,6 @@
 from odoo import models, fields, api
 
 
-class AccountMove(models.Model):
-    _inherit = 'account.move'
-
-    @api.multi
-    def post(self):
-        """ Do not post when tax_invoice_manual is not ready """
-        # Find move line with uncleared undue tax
-        move_lines = self.mapped('line_ids').\
-            filtered(lambda l: l.tax_exigible and
-                     l.tax_line_id.type_tax_use == 'purchase' and
-                     l.tax_line_id.tax_exigibility == 'on_payment')
-        if move_lines.filtered(lambda l: not l.tax_invoice_manual):
-            return False
-        return super().post()
-
-
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
@@ -45,10 +29,8 @@ class AccountMoveLine(models.Model):
     def create(self, vals):
         if self._context.get('cash_basis_entry_hook', False):
             move_line = self._context['cash_basis_entry_hook']
-            invoice_tax = move_line.invoice_tax_line_id
             vals.update({
-                'invoice_tax_line_id': invoice_tax.id,
-                'tax_invoice_manual': invoice_tax.tax_invoice_manual,
+                'invoice_tax_line_id': move_line.invoice_tax_line_id.id,
             })
         return super().create(vals)
 
@@ -68,7 +50,7 @@ class AccountPartialReconcile(models.Model):
     @api.model
     def create(self, vals):
         """ Check payment, if taxinv_ready is not checked,
-            do not create tax cash basis entry invl_id"""
+            do not create tax cash basis entry """
         aml = []
         if vals.get('debit_move_id', False):
             aml.append(vals['debit_move_id'])
@@ -79,5 +61,13 @@ class AccountPartialReconcile(models.Model):
         payment = lines.mapped('payment_id')
         payment.ensure_one()
         if payment and not payment.taxinv_ready:
+            self = self.with_context(pending_tax_cash_basis_entry=True)
             payment.pending_tax_cash_basis_entry = True
         return super().create(vals)
+
+    @api.multi
+    def create_tax_cash_basis_entry(self, percentage_before_rec):
+        """ When validate outbound payment and taxinv not ready, skip it """
+        if self._context.get('pending_tax_cash_basis_entry'):
+            return
+        return super().create_tax_cash_basis_entry(percentage_before_rec)

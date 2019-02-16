@@ -14,6 +14,7 @@
                     <tree editable="bottom" delete="0" create="0">
                         <field name="tax_invoice_manual"/>
                         <field name="invoice_id" readonly="1"/>
+                        <field name="invl_id" invisible="1"/>
                         <field name="amount" string="Tax Amount" readonly="1"/>
                     </tree>
                 </field>
@@ -34,6 +35,7 @@
                     <tree editable="bottom" delete="0" create="0">
                         <field name="tax_invoice_manual"/>
                         <field name="invoice_id" readonly="1"/>
+                        <field name="invl_id" invisible="1"/>
                         <field name="amount" string="Tax Amount" readonly="1"/>
                     </tree>
                 </field>
@@ -58,8 +60,9 @@
                 <field name="pending_tax_cash_basis_entry" invisible="1"/>
                 <field name="tax_line_ids" attrs="{'invisible': [('taxinv_ready', '=', False)]}">
                     <tree editable="bottom" delete="0" create="0">
-                        <field name="tax_invoice_manual" attrs="{'readonly': [('parent.payment_type', '!=', 'outbound')]}"/>
+                        <field name="tax_invoice_manual"/>
                         <field name="invoice_id" readonly="1"/>
+                        <field name="invl_id" invisible="1"/>
                         <field name="amount" string="Tax Amount" readonly="1"/>
                     </tree>
                 </field>

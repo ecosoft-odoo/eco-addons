@@ -17,12 +17,6 @@ class AccountInvoiceTax(models.Model):
         help="- case sales invoice/refund, use invoice number\n"
         "- case purchase invoice/refund, user will manually keyin\n",
     )
-    move_line_ids = fields.One2many(
-        comodel_name='account.move.line',
-        inverse_name='invoice_tax_line_id',
-        string='Journal Items',
-        readonly=True,
-    )
 
     @api.multi
     def _compute_tax_invoice(self):
@@ -32,10 +26,3 @@ class AccountInvoiceTax(models.Model):
                 tax_line.invoice_id.reference or \
                 tax_line.invoice_id.number
         return True
-
-    @api.multi
-    def write(self, vals):
-        if vals.get('tax_invoice_manual'):
-            ml = self.mapped('move_line_ids')
-            ml.write({'tax_invoice_manual': vals['tax_invoice_manual']})
-        return super().write(vals)
