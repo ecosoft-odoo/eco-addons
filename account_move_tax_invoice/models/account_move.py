@@ -49,11 +49,12 @@ class AccountMoveLine(models.Model):
             vals.update({
                 'invoice_tax_line_id': invoice_tax.id,
                 'tax_invoice_manual': invoice_tax.tax_invoice_manual,
+                'payment_id': self._context.get('payment_id'),
             })
         return super().create(vals)
 
     @api.multi
-    @api.depends('tax_invoice_manual', 'invoice_id.move_id')
+    @api.depends('tax_invoice_manual', 'invoice_tax_line_id')
     def _compute_tax_invoice(self):
         """ tax_invoice_manual over invoice_tax_line_id's tax_invoice """
         for ml in self:
@@ -80,4 +81,6 @@ class AccountPartialReconcile(models.Model):
         payment.ensure_one()
         if payment and not payment.taxinv_ready:
             payment.pending_tax_cash_basis_entry = True
-        return super().create(vals)
+        res = super(AccountPartialReconcile,
+                    self.with_context(payment_id=payment.id)).create(vals)
+        return res

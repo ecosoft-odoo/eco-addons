@@ -15,16 +15,15 @@ class AccountPayment(models.Model):
             taxes = invoice_lines.mapped('invoice_line_tax_ids')
             if not taxes.filtered(lambda l: l.tax_exigibility == 'on_payment'):
                 self.taxinv_ready = True
-        return super()._create_payment_entry(amount)
+        res = super()._create_payment_entry(amount)
+        return res
 
     @api.multi
     def post(self):
         for payment in self:
             if payment.taxinv_ready:
                 payment._check_tax_invoice_manual()
-        res = super().post()
-        self.mapped('tax_line_ids').write({'tax_invoice_manual': False})
-        return res
+        return super().post()
 
     @api.multi
     def clear_tax_cash_basis(self):
@@ -35,15 +34,21 @@ class AccountPayment(models.Model):
             if not payment.taxinv_ready:
                 raise UserError(_('Tax Invoice Ready is not checked.'))
             payment._check_tax_invoice_manual()
+            payment._update_tax_invoice_move()
             payment.pending_tax_cash_basis_entry = False
             # Find move for this payment tax to clear, post it
-            moves = payment.tax_line_ids.\
-                mapped('move_line_ids').mapped('move_id')
+            moves = payment.mapped('move_line_ids').mapped('move_id')
             for move in moves:
                 if move.state == 'draft':
                     move.post()
-        self.mapped('tax_line_ids').write({'tax_invoice_manual': False})
         return True
+
+    @api.multi
+    def write(self, vals):
+        res = super().write(vals)
+        if vals.get('tax_line_ids'):
+            self._update_tax_invoice_move()
+        return res
 
 
 class AccuntAbstractPayment(models.AbstractModel):
@@ -59,10 +64,22 @@ class AccuntAbstractPayment(models.AbstractModel):
         help="Tax invoice number is ready for filling in,\n"
         "system will open tax table allow user to fill in",
     )
-    tax_line_ids = fields.Many2many(
-        comodel_name='account.invoice.tax',
+    tax_line_ids = fields.One2many(
+        comodel_name='account.payment.tax',
+        inverse_name='payment_id',
         copy=False,
     )
+
+    @api.multi
+    def _update_tax_invoice_move(self):
+        for payment in self:
+            for tax_line in payment.tax_line_ids:
+                ml = self.env['account.move.line'].search([
+                    ('invoice_tax_line_id', '=',
+                     tax_line.invoice_tax_line_id.id),
+                    ('payment_id', '=', payment.id)])
+                print(ml)
+                ml.write({'tax_invoice_manual': tax_line.tax_invoice_manual})
 
     @api.multi
     def _check_tax_invoice_manual(self):
@@ -78,7 +95,10 @@ class AccuntAbstractPayment(models.AbstractModel):
         invoice_ids = self._context.get('active_ids')
         InvoiceTax = self.env['account.invoice.tax']
         tax_lines = InvoiceTax.search([('invoice_id', 'in', invoice_ids)])
-        res['tax_line_ids'] = [(6, 0, tax_lines.ids)]
+        vals = []
+        for tax_line in tax_lines:
+            vals.append((0, 0, {'invoice_tax_line_id': tax_line.id}))
+        res['tax_line_ids'] = vals
         return res
 
     @api.constrains('taxinv_ready', 'pending_tax_cash_basis_entry')
@@ -88,3 +108,22 @@ class AccuntAbstractPayment(models.AbstractModel):
                     not payment.pending_tax_cash_basis_entry:
                 continue
             payment._check_tax_invoice_manual()
+
+
+class AccountPaymentTax(models.Model):
+    _name = 'account.payment.tax'
+    _description = 'Place to keep tax invoice on payment'
+
+    payment_id = fields.Many2one(
+        comodel_name='account.payment',
+        string='Payment',
+        index=True,
+        readonly=True,
+    )
+    tax_invoice_manual = fields.Char(
+        string='Tax Invoice',
+    )
+    invoice_tax_line_id = fields.Many2one(
+        comodel_name='account.invoice.tax',
+        string='Invoice Tax Line',
+    )
