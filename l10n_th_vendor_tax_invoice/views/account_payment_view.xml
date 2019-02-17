@@ -13,7 +13,7 @@
                 <field name="tax_line_ids" attrs="{'invisible': [('taxinv_ready', '=', False)]}">
                     <tree editable="bottom" delete="0" create="0">
                         <field name="tax_invoice_manual"/>
-                        <field name="invoice_tax_line_id" invisible="1"/>
+                        <field name="invoice_tax_line_id"/>
                     </tree>
                 </field>
             </sheet>
@@ -32,7 +32,7 @@
                 <field name="tax_line_ids" attrs="{'invisible': [('taxinv_ready', '=', False)]}">
                     <tree editable="bottom" delete="0" create="0">
                         <field name="tax_invoice_manual"/>
-                        <field name="invoice_tax_line_id" invisible="1"/>
+                        <field name="invoice_tax_line_id"/>
                     </tree>
                 </field>
             </group>
@@ -54,10 +54,11 @@
                 <label string="Key-in tax invoice number from supplier" class="oe_inline"
                   attrs="{'invisible': [('payment_type', '=', 'inbound')]}"/>
                 <field name="pending_tax_cash_basis_entry" invisible="1"/>
-                <field name="tax_line_ids" attrs="{'invisible': [('taxinv_ready', '=', False)]}">
+                <field name="tax_line_ids" attrs="{'invisible': ['|', ('taxinv_ready', '=', False)
+                                                                 , ('tax_line_ids', '=', [])]}">
                     <tree editable="bottom" delete="0" create="0">
                         <field name="tax_invoice_manual" attrs="{'readonly': [('parent.payment_type', '!=', 'outbound')]}"/>
-                        <field name="invoice_tax_line_id" invisible="1"/>
+                        <field name="invoice_tax_line_id"/>
                     </tree>
                 </field>
             </group>

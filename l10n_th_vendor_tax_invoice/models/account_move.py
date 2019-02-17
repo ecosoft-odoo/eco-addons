@@ -27,39 +27,59 @@ class AccountMoveLine(models.Model):
         copy=False,
         ondelete='restrict',
     )
+    payment_tax_line_id = fields.Many2one(
+        comodel_name='account.payment.tax',
+        string='Payment Tax Line',
+        copy=False,
+        ondelete='restrict',
+    )
     tax_invoice_manual = fields.Char(
         string='Tax Invoice',
         copy=False,
-        help="Used for purchase invoice, when vendor will provice number\n"
-        "this will always overwrite invoice's number",
     )
     tax_invoice = fields.Char(
         string='Tax Invoice',
         compute='_compute_tax_invoice',
         store=True,
-        help="- case sales invoice/refund, use invoice number\n"
-        "- case purchase invoice/refund, user will manually keyin\n",
+    )
+    tax_date_manual = fields.Date(
+        string='Tax Date',
+        copy=False,
+    )
+    tax_date = fields.Char(
+        string='Tax Date',
+        compute='_compute_tax_invoice',
+        store=True,
     )
 
     @api.model
     def create(self, vals):
         if self._context.get('cash_basis_entry_hook', False):
             move_line = self._context['cash_basis_entry_hook']
-            invoice_tax = move_line.invoice_tax_line_id
+            invoice_tax_line = move_line.invoice_tax_line_id
+            payment_tax_line = self.env['account.payment.tax'].search(
+                [('invoice_tax_line_id', '=', invoice_tax_line.id),
+                 ('payment_id', '=', self._context.get('payment_id'))])
             vals.update({
-                'invoice_tax_line_id': invoice_tax.id,
-                'tax_invoice_manual': invoice_tax.tax_invoice_manual,
-                'payment_id': self._context.get('payment_id'),
+                'invoice_tax_line_id': invoice_tax_line.id,
+                'tax_invoice_manual': invoice_tax_line.tax_invoice_manual,
+                'payment_tax_line_id': payment_tax_line.id,
             })
         return super().create(vals)
 
     @api.multi
-    @api.depends('tax_invoice_manual', 'invoice_tax_line_id')
+    @api.depends('tax_invoice_manual',
+                 'invoice_tax_line_id',
+                 'invoice_id.number',
+                 'invoice_id.date_invoice')
     def _compute_tax_invoice(self):
-        """ tax_invoice_manual over invoice_tax_line_id's tax_invoice """
-        for ml in self:
+        for ml in self.filtered('tax_line_id'):
             ml.tax_invoice = ml.tax_invoice_manual or \
-                ml.invoice_tax_line_id.tax_invoice
+                ml.invoice_tax_line_id.tax_invoice or \
+                ml.invoice_id.number
+            ml.tax_date = ml.tax_date_manual or \
+                ml.invoice_tax_line_id.tax_date or \
+                ml.invoice_id.date_invoice
         return True
 
 

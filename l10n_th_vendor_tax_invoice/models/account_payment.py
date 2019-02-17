@@ -23,7 +23,9 @@ class AccountPayment(models.Model):
         for payment in self:
             if payment.taxinv_ready:
                 payment._check_tax_invoice_manual()
-        return super().post()
+        res = super().post()
+        self._update_tax_invoice_move()
+        return res
 
     @api.multi
     def clear_tax_cash_basis(self):
@@ -36,11 +38,6 @@ class AccountPayment(models.Model):
             payment._check_tax_invoice_manual()
             payment._update_tax_invoice_move()
             payment.pending_tax_cash_basis_entry = False
-            # Find move for this payment tax to clear, post it
-            moves = payment.mapped('move_line_ids').mapped('move_id')
-            for move in moves:
-                if move.state == 'draft':
-                    move.post()
         return True
 
     @api.multi
@@ -73,13 +70,14 @@ class AccuntAbstractPayment(models.AbstractModel):
     @api.multi
     def _update_tax_invoice_move(self):
         for payment in self:
-            for tax_line in payment.tax_line_ids:
+            for p_tax in payment.tax_line_ids:
                 ml = self.env['account.move.line'].search([
-                    ('invoice_tax_line_id', '=',
-                     tax_line.invoice_tax_line_id.id),
-                    ('payment_id', '=', payment.id)])
-                print(ml)
-                ml.write({'tax_invoice_manual': tax_line.tax_invoice_manual})
+                    ('payment_tax_line_id', '=', p_tax.id),
+                    ('tax_line_id', '!=', False)])
+                ml.write({'tax_invoice_manual': p_tax.tax_invoice_manual})
+                # Find move for this payment tax to clear, post it
+                ml.mapped('move_id').\
+                    filtered(lambda m: m.state == 'draft').post()
 
     @api.multi
     def _check_tax_invoice_manual(self):
@@ -94,7 +92,10 @@ class AccuntAbstractPayment(models.AbstractModel):
         res = super().default_get(fields)
         invoice_ids = self._context.get('active_ids')
         InvoiceTax = self.env['account.invoice.tax']
-        tax_lines = InvoiceTax.search([('invoice_id', 'in', invoice_ids)])
+        tax_lines = InvoiceTax.search([
+            ('invoice_id', 'in', invoice_ids),
+            ('tax_id.tax_exigibility', '=', 'on_payment'),
+            ('tax_id.type_tax_use', '=', 'purchase')])
         vals = []
         for tax_line in tax_lines:
             vals.append((0, 0, {'invoice_tax_line_id': tax_line.id}))
