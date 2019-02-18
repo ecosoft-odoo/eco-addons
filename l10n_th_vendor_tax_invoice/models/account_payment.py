@@ -24,7 +24,7 @@ class AccountPayment(models.Model):
             if payment.taxinv_ready:
                 payment._check_tax_invoice_manual()
         res = super().post()
-        self._update_tax_invoice_move()
+        # self._update_tax_invoice_move()
         return res
 
     @api.multi
@@ -39,13 +39,6 @@ class AccountPayment(models.Model):
             payment._update_tax_invoice_move()
             payment.pending_tax_cash_basis_entry = False
         return True
-
-    @api.multi
-    def write(self, vals):
-        res = super().write(vals)
-        if vals.get('tax_line_ids'):
-            self._update_tax_invoice_move()
-        return res
 
 
 class AccuntAbstractPayment(models.AbstractModel):
@@ -70,22 +63,28 @@ class AccuntAbstractPayment(models.AbstractModel):
     @api.multi
     def _update_tax_invoice_move(self):
         for payment in self:
-            for p_tax in payment.tax_line_ids:
-                ml = self.env['account.move.line'].search([
-                    ('payment_tax_line_id', '=', p_tax.id),
+            for p in payment.tax_line_ids:
+                move_lines = self.env['account.move.line'].search([
+                    ('payment_tax_line_id', '=', p.id),
                     ('tax_line_id', '!=', False)])
-                ml.write({'tax_invoice_manual': p_tax.tax_invoice_manual})
+                # Update new tax invoice info
+                for m in move_lines:
+                    vals = {'tax_invoice_manual': p.tax_invoice_manual,
+                            'tax_date_manual': p.tax_date_manual}
+                    m.write(vals)
                 # Find move for this payment tax to clear, post it
-                ml.mapped('move_id').\
+                move_lines.mapped('move_id').\
                     filtered(lambda m: m.state == 'draft').post()
 
     @api.multi
     def _check_tax_invoice_manual(self):
         for payment in self:
             no_taxinv_lines = payment.tax_line_ids.\
-                filtered(lambda l: not l.tax_invoice_manual)
+                filtered(lambda l:
+                         not l.tax_invoice_manual or
+                         not l.tax_date_manual)
             if no_taxinv_lines:
-                raise UserError(_('Some tax invoice number is not filled!'))
+                raise UserError(_('Tax invoice/date is not filled!'))
 
     @api.model
     def default_get(self, fields):
@@ -98,7 +97,10 @@ class AccuntAbstractPayment(models.AbstractModel):
             ('tax_id.type_tax_use', '=', 'purchase')])
         vals = []
         for tax_line in tax_lines:
-            vals.append((0, 0, {'invoice_tax_line_id': tax_line.id}))
+            company_currency_id = self.env.user.company_id.currency_id.id
+            vals.append((0, 0, {'invoice_tax_line_id': tax_line.id,
+                                'name': tax_line.name,
+                                'company_currency_id': company_currency_id}))
         res['tax_line_ids'] = vals
         return res
 
@@ -121,10 +123,49 @@ class AccountPaymentTax(models.Model):
         index=True,
         readonly=True,
     )
-    tax_invoice_manual = fields.Char(
-        string='Tax Invoice',
-    )
     invoice_tax_line_id = fields.Many2one(
         comodel_name='account.invoice.tax',
         string='Invoice Tax Line',
     )
+    name = fields.Char(
+        string='Tax Description',
+    )
+    tax_invoice_manual = fields.Char(
+        string='Tax Invoice',
+        help="Vendor provided tax invoice number",
+    )
+    tax_date_manual = fields.Date(
+        string='Tax Date',
+        help="Vendor provided tax invoice date",
+    )
+    company_currency_id = fields.Many2one(
+        comodel_name='res.currency',
+        string='Company Currency',
+        default=lambda self: self.env.user.company_id.currency_id,
+    )
+    move_line_id = fields.Many2one(
+        comodel_name='account.move.line',
+        string='Journal Item',
+        compute='_compute_move_line_id',
+        help="Journal Item that refer to this tax amount",
+    )
+    move_id = fields.Many2one(
+        comodel_name='account.move',
+        string='Journal Entry',
+        related='move_line_id.move_id',
+        readonly=True,
+    )
+    amount_tax = fields.Monetary(
+        currency_field='company_currency_id',
+        string='Tax Amount',
+        related='move_line_id.balance',
+        readonly=True,
+    )
+
+    @api.multi
+    def _compute_move_line_id(self):
+        MoveLine = self.env['account.move.line']
+        for rec in self:
+            move_line = MoveLine.search([('payment_tax_line_id', '=', rec.id),
+                                         ('tax_line_id', '!=', False)])
+            rec.move_line_id = move_line
