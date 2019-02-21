@@ -10,10 +10,10 @@
                         so that you can review them before validation.
                     </p>
                     <footer>
-                        <button name="create_invoices_by_plan" string="Create and View Invoices" type="object"
-                            context="{'open_invoices': True}" class="btn-primary"/>
-                        <button name="create_invoices_by_plan" string="Create Invoices" type="object"
+                        <button name="create_invoices_by_plan" string="Create Next Inovice" type="object"
                             class="btn-primary"/>
+                        <button name="create_invoices_by_plan" string="Create All Remaining Invoices" type="object"
+                            context="{'all_remain_invoices': True}" class="btn-primary"/>
                         <button string="Cancel" class="btn-default" special="cancel"/>
                     </footer>
                 </form>

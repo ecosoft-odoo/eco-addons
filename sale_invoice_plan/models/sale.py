@@ -2,7 +2,8 @@
 from dateutil.relativedelta import relativedelta
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-from odoo.tools.float_utils import float_round
+from odoo.addons import decimal_precision as dp
+from odoo.tools.float_utils import float_round as round
 
 
 class SaleOder(models.Model):
@@ -28,7 +29,9 @@ class SaleOder(models.Model):
         invoice_plans = []
         if num_installment <= 1:
             raise UserError(_('Number Installment must greater than 1'))
-        percent = round(1.0 / num_installment * 100, 2)
+        Decimal = self.env['decimal.precision']
+        prec = Decimal.precision_get('Product Unit of Measure')
+        percent = round(1.0 / num_installment * 100, prec)
         percent_last = 100 - (percent * (num_installment-1))
         # Advance
         if advance:
@@ -116,6 +119,8 @@ class SaleInvoicePlan(models.Model):
     )
     percent = fields.Float(
         string='Percent',
+        digits=dp.get_precision('Product Unit of Measure'),
+        help="This percent will be used to calculate new quantity"
     )
     invoice_ids = fields.Many2many(
         'account.invoice',
@@ -130,7 +135,7 @@ class SaleInvoicePlan(models.Model):
         help="If this line is ready to create new invoice",
     )
     invoiced = fields.Boolean(
-        string='Invoiced',
+        string='Invoice Created',
         compute='_compute_invoiced',
         help="If this line already invoiced",
     )
@@ -143,7 +148,7 @@ class SaleInvoicePlan(models.Model):
         """ If any invoice is in draft/open/paid do not allow to create inv
             Only if previous to_invoice is False, it is eligible to_invoice
         """
-        for rec in self:
+        for rec in self.sorted('installment'):
             rec.to_invoice = False
             if rec.sale_id.state != 'sale':  # Not confirmed, no to_invoice
                 continue

@@ -12,16 +12,10 @@
                 <group>
                     <group>
                         <field name="num_installment"/>
-                    </group>
-                    <group>
-                        <field name="advance"/>
-                    </group>
-                </group>
-                <group>
-                    <group>
                         <field name="installment_date"/>
                     </group>
                     <group>
+                        <field name="advance"/>
                         <label for="interval"/>
                         <div>
                             <field name="interval" class="oe_inline"/>

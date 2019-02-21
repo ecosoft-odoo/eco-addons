@@ -16,7 +16,5 @@
 
 
 # TODO
-# - Form view of invoice plan for better viewing
-# - Do sorting first in invoice_plan_ids to avoid missing
 # - Do create all plan
 # - Make percentage as 3 digits
