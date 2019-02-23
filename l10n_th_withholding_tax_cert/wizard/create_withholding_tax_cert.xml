@@ -7,7 +7,9 @@
             <field name="model">create.withholding.tax.cert</field>
             <field name="arch" type="xml">
                 <form string="Post Journal Entries">
-                    <label string="Create new witholding tax cert. based on account move for withholding tax."/>
+                    <p>
+                        Create new witholding tax cert. based on account move for withholding tax.
+                    </p>
                     <group>
                         <group>
                             <field name="wt_account_ids" widget="many2many_tags"/>

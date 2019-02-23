@@ -2,7 +2,7 @@
 
 
 {'name': 'TH Withholding Tax Certificate',
- 'version': '11.0.0.0.0',
+ 'version': '12.0.1.0.0',
  'author': 'Ecosoft,Odoo Community Association (OCA)',
  'website': '???',
  'license': 'AGPL-3',
@@ -16,6 +16,6 @@
           'views/account_payment_view.xml'
           ],
  'installable': True,
- 'development_status': '???',
+ 'development_status': 'alpha',
  'maintainers': ['kittiu'],
  }

@@ -10,8 +10,9 @@
                 <div name="button_box" position="inside">
                     <button class="oe_stat_button" name="button_wt_certs"
                             string="WT Certs" type="object"
-                            groups="account.group_account_user"
-                            attrs="{'invisible':[('wt_cert_ids','=',[])]}" icon="fa-bars"/>
+                            groups="account.group_account_invoice"
+                            attrs="{'invisible':[('wt_cert_ids','=',[])]}"
+                            icon="fa-bars"/>
                     <field name="wt_cert_ids" invisible="1"/>
                 </div>
             </field>
