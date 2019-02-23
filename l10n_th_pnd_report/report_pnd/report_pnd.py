@@ -16,7 +16,6 @@ class ReportPND(models.TransientModel):
     date_range_id = fields.Many2one(
         comodel_name='date.range',
         string='Date range',
-        domain=[('type_id.fiscal_year', '=', False)],
         required=True,
     )
     date_from = fields.Date(

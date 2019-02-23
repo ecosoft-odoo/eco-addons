@@ -11,9 +11,8 @@
                   attrs="{'invisible': ['|', ('pending_tax_cash_basis_entry', '!=', True), ('state', '!=', 'posted')]}"/>
             </button>
             <group position="after">
-                <field name="taxinv_ready"
-                  attrs="{'invisible': [('payment_type', '=', 'inbound')]}"/>
-                <label string="Key-in tax invoice number/date from supplier" class="oe_inline"
+                <field name="taxinv_ready" attrs="{'invisible': [('payment_type', '=', 'inbound')]}"/>
+                <label for="taxinv_ready" string="Key-in tax invoice number/date from supplier" class="oe_inline"
                   attrs="{'invisible': [('payment_type', '=', 'inbound')]}"/>
                 <field name="pending_tax_cash_basis_entry" invisible="1"/>
                 <field name="tax_line_ids" attrs="{'invisible': ['|', ('taxinv_ready', '=', False)

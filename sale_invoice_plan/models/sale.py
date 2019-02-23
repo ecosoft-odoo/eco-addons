@@ -14,12 +14,24 @@ class SaleOder(models.Model):
         inverse_name='sale_id',
         string='Inovice Plan',
         copy=False,
+        readonly=True,
+        states={'draft': [('readonly', False)]},
     )
     use_invoice_plan = fields.Boolean(
         string='Use Invoice Plan',
         default=False,
         copy=False,
+        readonly=True,
+        states={'draft': [('readonly', False)]},
     )
+
+    @api.constrains('state')
+    def _check_invoice_plan(self):
+        for rec in self:
+            if rec.state != 'draft':
+                if rec.invoice_plan_ids.filtered(lambda l: not l.percent):
+                    raise UserError(
+                        _('Please fill percentage for all invoice plan lines'))
 
     @api.multi
     def create_invoice_plan(self, num_installment, installment_date,

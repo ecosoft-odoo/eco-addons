@@ -52,7 +52,7 @@
                     <label for="use_invoice_plan"/>
                 </div>
             </xpath>
-            <xpath expr="//button[@name='action_quotation_send']" position="before">
+            <xpath expr="//button[@name='payment_action_capture']" position="before">
                 <button name="%(action_view_sale_make_planned_invoice)d"
                     string="Create Invoice by Plan" type="action" class="btn-primary"
                     attrs="{'invisible': ['|', '|', ('use_invoice_plan', '=', False), ('invoice_status', 'not in', ['to invoice', 'no']), ('state', '!=', 'sale')]}"/>

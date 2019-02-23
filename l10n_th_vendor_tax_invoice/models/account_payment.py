@@ -32,9 +32,9 @@ class AccountPayment(models.Model):
         for payment in self:
             # Validation
             if not payment.pending_tax_cash_basis_entry:
-                raise UserError(_('Tax cash basis is no longer pending.'))
+                raise UserError(_('Tax cash basis is no longer pending'))
             if not payment.taxinv_ready:
-                raise UserError(_('Tax Invoice Ready is not checked.'))
+                raise UserError(_('Please key-in tax invoice number/date'))
             payment._check_tax_invoice_manual()
             payment._update_tax_invoice_move()
             payment.pending_tax_cash_basis_entry = False

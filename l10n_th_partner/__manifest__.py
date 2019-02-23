@@ -2,7 +2,7 @@
 
 
 {'name': 'Thai Localization - Partner',
- 'version': '11.0.0.0.0',
+ 'version': '12.0.1.0.0',
  'author': 'Ecosoft,Odoo Community Association (OCA)',
  'website': '???',
  'license': 'AGPL-3',

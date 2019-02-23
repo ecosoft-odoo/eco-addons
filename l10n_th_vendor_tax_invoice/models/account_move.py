@@ -6,7 +6,7 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
     @api.multi
-    def post(self):
+    def post(self, invoice=False):
         """ Do not post when tax_invoice_manual is not ready """
         # Find move line with uncleared undue tax
         move_lines = self.mapped('line_ids').\
@@ -15,7 +15,7 @@ class AccountMove(models.Model):
                      l.tax_line_id.tax_exigibility == 'on_payment')
         if move_lines.filtered(lambda l: not l.tax_invoice_manual):
             return False
-        return super().post()
+        return super().post(invoice=invoice)
 
 
 class AccountMoveLine(models.Model):
@@ -54,8 +54,9 @@ class AccountMoveLine(models.Model):
 
     @api.model
     def create(self, vals):
-        if self._context.get('cash_basis_entry_hook', False):
-            move_line = self._context['cash_basis_entry_hook']
+        if self._context.get('cash_basis_entry_move_line', False):
+            move_line = self._context['cash_basis_entry_move_line']
+            print(move_line)
             invoice_tax_line = move_line.invoice_tax_line_id
             payment_tax_line = self.env['account.payment.tax'].search(
                 [('invoice_tax_line_id', '=', invoice_tax_line.id),
@@ -65,7 +66,10 @@ class AccountMoveLine(models.Model):
                 'tax_invoice_manual': invoice_tax_line.tax_invoice_manual,
                 'payment_tax_line_id': payment_tax_line.id,
             })
-        return super().create(vals)
+        res = super().create(vals)
+        print(vals)
+        print(res)
+        return res
 
     @api.multi
     @api.depends('tax_invoice_manual',

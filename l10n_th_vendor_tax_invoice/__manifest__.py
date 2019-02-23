@@ -1,7 +1,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 {
-    'name': "Vendor Tax Invoice",
-    'version': "11.0.0.0.0",
+    'name': "Thai Localization - Vendor Tax Invoice",
+    'version': "12.0.1.0.0",
     "author": "Ecosoft,Odoo Community Association (OCA)",
     'description': """
 
@@ -17,7 +17,8 @@ to come in after to register tax invoice number / date and then Clear VAT.
     'license': "AGPL-3",
     'depends': ["account",
                 "account_create_tax_cash_basis_entry_hook"],
-    'data': ["views/account_invoice.xml",
+    'data': ["security/ir.model.access.csv",
+             "views/account_invoice.xml",
              "views/account_payment_view.xml"],
     'installable': True,
 }
