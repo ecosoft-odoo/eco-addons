@@ -7,7 +7,7 @@
         <field name="fname">xlsx_report_pnd.xlsx</field>
         <field name="name">Report PND Template</field>
         <field name="description">PND3, PND53 Summary Report</field>
-        <field name="instruction">
+        <field name="input_instruction">
           {
               '__EXPORT__': {
                   1: {
@@ -26,15 +26,11 @@
                           'E6': 'cert_id.date${value or ""}#{number_format=date}',
                           'F6': 'wt_cert_income_desc${value or ""}',
                           'G6': 'wt_percent${"%s%%" % value or "0"}#{number_format=text}',
-                          'H6': 'base${value or ""}#{number_format=number}',
-                          'I6': 'amount${value or ""}#{number_format=number}',
+                          'H6': 'base${value or ""}#{number_format=number}@{sum}',
+                          'I6': 'amount${value or ""}#{number_format=number}@{sum}',
                           'J6': 'cert_id.tax_payer${value == b"withholding" and "1" or value == b"paid_one_time" and "3" or ""}',
                           'K6': 'cert_id.payment_id.name${value or ""}',
                       },
-                      '_TAIL_0': {
-                          'H6': '@{sum}#{font=bold;number_format=number}',
-                          'I6': '@{sum}#{font=bold;number_format=number}',
-                      }
                   }
               }
           }
@@ -53,7 +49,7 @@
         <field name="csv_extension">txt</field>
         <field name="csv_quote">True</field>
         <field name="name">Report PND Template (.txt)</field>
-        <field name="instruction">
+        <field name="input_instruction">
           {
               '__EXPORT__': {
                   1: {
