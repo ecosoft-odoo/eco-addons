@@ -14,18 +14,18 @@
                             'A2': 'tax_id.type_tax_use${value and value == "sale" and "Sales VAT Report" or "Purchase VAT Report"}',
                             'C4': 'date_range_id.display_name${value or ""}',
                             'C5': 'company_id.display_name${value or ""}',
-                            'G4': 'company_id.partner_id.vat${value or ""}#{align=left;number_format=text}',
-                            'G4': 'company_id.partner_id.branch${value or ""}#{align=left;number_format=text}',
+                            'G4': 'company_id.partner_id.vat${value or ""}#{align=left;format=text}',
+                            'G4': 'company_id.partner_id.branch${value or ""}#{align=left;format=text}',
                         },
                         'results': {
                             'A10': '${"=ROW()-9"}',
-                            'B10': 'date${value or ""}#{number_format=date}',
+                            'B10': 'date${value or ""}#{format=date}',
                             'C10': 'tax_invoice${value or ""}',
                             'D10': 'partner_id.display_name${value or ""}',
                             'E10': 'partner_id.vat${value or ""}',
                             'F10': 'partner_id.branch${value or ""}',
-                            'G10': 'base_amount${value or 0}#{number_format=number}',
-                            'H10': 'tax_amount${value or 0}#{number_format=number}',
+                            'G10': 'base_amount${value or 0}#{format=number}',
+                            'H10': 'tax_amount${value or 0}#{format=number}',
                             'I10': 'name${value or ""}',
                         }
                     }
