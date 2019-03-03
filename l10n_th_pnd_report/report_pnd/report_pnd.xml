@@ -32,7 +32,7 @@
         </field>
     </record>
 
-    <menuitem id="menu_xlsx_template"
+    <menuitem id="menu_report_pnd"
         parent="l10n_it_withholding_tax.wt_main"
         action="action_report_pnd"
         sequence="100"/>

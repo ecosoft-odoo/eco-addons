@@ -36,7 +36,7 @@
         </field>
     </record>
 
-    <menuitem id="menu_xlsx_template"
+    <menuitem id="menu_report_vat"
         parent="menu_l10n_th_account_report"
         action="action_report_vat"
         sequence="10"/>
