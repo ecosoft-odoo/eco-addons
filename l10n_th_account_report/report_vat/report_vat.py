@@ -28,7 +28,6 @@ class ReportVAT(models.TransientModel):
     date_range_id = fields.Many2one(
         comodel_name='date.range',
         string='Period',
-        domain=[('type_id.fiscal_year', '=', False)],
         required=True,
     )
     date_from = fields.Date(
