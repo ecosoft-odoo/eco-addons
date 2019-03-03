@@ -102,9 +102,8 @@ class AccountPartialReconcile(models.Model):
         # Get value of matched percentage from both move before reconciliating
         lines = self.env['account.move.line'].browse(aml)
         payment = lines.mapped('payment_id')
-        payment.ensure_one()
-        if payment and not payment.taxinv_ready:
+        if payment and len(payment) == 1 and not payment.taxinv_ready:
             payment.pending_tax_cash_basis_entry = True
-        res = super(AccountPartialReconcile,
-                    self.with_context(payment_id=payment.id)).create(vals)
+            self = self.with_context(payment_id=payment.id)
+        res = super(AccountPartialReconcile, self).create(vals)
         return res
