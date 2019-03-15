@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
-
+from num2words import num2words
 
 INCOME_TAX_FORM = [('pnd1', 'PND1'),
                    ('pnd3', 'PND3'),
@@ -179,6 +179,13 @@ class WithholdingTaxCert(models.Model):
     def action_cancel(self):
         self.write({'state': 'cancel'})
         return True
+
+    @api.multi
+    def amount_text(self, amount):
+        try:
+            return num2words(amount, to='currency', lang='th')
+        except NotImplementedError:
+            return num2words(amount, to='currency', lang='en')
 
 
 class WithholdingTaxCertLine(models.Model):
