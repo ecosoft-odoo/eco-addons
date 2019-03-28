@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2019 Ecosoft Co., Ltd.
+  License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html).-->
+<odoo>
+
+    <record id="report_project_template" model="xlsx.template">
+        <field name="res_model">report.project</field>
+        <field name="fname">report_project.xlsx</field>
+        <field name="name">Report Project Template</field>
+        <field name="input_instruction">
+            {
+                '__EXPORT__': {
+                    1: {
+                        '_HEAD_': {
+                            'A2': 'project_id.name${value or ""}#{align=center;style=text}',
+                            'B3': 'project_id.total_duration_package${value or 0}#{align=right;style=number}',
+                            'B4': 'project_id.used_man_hour${value or 0}#{align=right;style=number}',
+                            'B5': 'project_id.balance_man_hour${value or 0}#{align=right;style=number}',
+                            'B6': 'project_id.total_available_package${value or 0}#{align=right;style=number}',
+                            'B7': 'project_id.total_effective_package${value or 0}#{align=right;style=number}',
+                            'E3': 'project_id.total_stage_close${value or 0}#{align=right;style=number}',
+                            'E4': 'project_id.total_stage_not_close${value or 0}#{align=right;style=number}',
+                        },
+                    },
+                    2: {
+                        '_HEAD_': {
+                            'A2': 'project_id.name${value or ""}#{align=center;style=text}',
+                        },
+                        'results_package': {
+                            'A4': 'date_start${value or ""}#{style=date}',
+                            'B4': 'date_end${value or ""}#{style=date}',
+                            'C4': 'ref${value or ""}#{style=text}',
+                            'D4': 'name${value or ""}#{style=text}',
+                            'E4': 'duration${value or 0}#{style=number}',
+                            'F4': 'effective${value or 0}#{style=number}',
+                        },
+                    },
+                    3: {
+                        '_HEAD_': {
+                            'A2': 'project_id.name${value or ""}#{align=center;style=text}',
+                        },
+                        'results': {
+                            'A4': 'code${value and value or ""}#{style=text}',
+                            'B4': 'date_end${value and value.strftime("%B %Y") or ""}',
+                            'C4': 'date_start${value or ""}#{style=date}',
+                            'D4': 'date_end${value or ""}#{style=date}',
+                            'E4': 'stage_id${value and value.name or ""}#{style=text}',
+                            'F4': 'name${value and value or ""}#{style=text}',
+                            'G4': 'effective_hours${value or 0}#{style=number}',
+                        },
+                    },
+                },
+            }
+        </field>
+    </record>
+
+    <function model="xlsx.template" name="load_xlsx_template">
+        <value eval="[ref('report_project_template')]"/>
+    </function>
+
+</odoo>

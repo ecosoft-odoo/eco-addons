@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Add scss style in module -->
+    <template id="report_assets_common" inherit_id="web.report_assets_common" name="layout_clean_inherit">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" type="text/scss" href="/qweb_ecosoft_template/static/src/scss/layout_clean_ecosoft.scss"/>
+        </xpath>
+    </template>
+
+    <template id="address_layout_ecosoft">
+        <t t-if="address">
+            <div class="address row">
+                <div name="address" class="col-6">
+                    <t t-raw="address"/>
+                </div>
+                <t t-if="information_block">
+                    <t t-set="colclass" t-value="('col-md-5' if report_type == 'html' else 'col-5') + ' ml-auto'"/>
+                    <div name="information_block" class="col-6">
+                        <t t-raw="information_block"/>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="external_layout_ecosoft">
+        <div class="header">
+            <div class="o_clean_header_ecosoft">
+            <div class="row">
+                <div class="col-6">
+                    <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" alt="Logo"/>
+                </div>
+                <div class="col-5 offset-1" name="company_address">
+                    <ul class="list-unstyled">
+                        <strong><li t-if="company.name"><span t-field="company.name"/></li></strong>
+                        <li t-if="company.vat"><t t-esc="company.country_id.vat_label or 'Tax ID'"/>: <span t-field="company.vat"/></li>
+                        <li t-if="company.phone">Tel: <span t-field="company.phone"/></li>
+                        <li t-if="company.email"><span t-field="company.email"/></li>
+                        <li t-if="company.website"><span t-field="company.website"/></li>
+                    </ul>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div class="article o_report_layout_ecosoft"  t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+            <t t-call="qweb_ecosoft_template.address_layout_ecosoft"/>
+            <t t-raw="0"/>
+        </div>
+
+        <div class="footer o_clean_footer_ecosoft">
+            <div class="row mt8">
+                <div class="col-11 text-center">
+                    <span t-field="company.report_footer"/>
+                </div>
+                <div class="col-1">
+                    <ul t-if="report_type == 'pdf'" class="list-inline pagenumber float-right text-center">
+                        <li class="list-inline-item"><strong><span class="page"/>/<span class="topage"/></strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </template>
+</odoo>
