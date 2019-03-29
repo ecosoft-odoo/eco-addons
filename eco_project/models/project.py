@@ -18,9 +18,13 @@ class Task(models.Model):
         # do not want to explicitly set user_id to False; however we do not
         # want the gateway user to be responsible if no other responsible is
         # found.
-        project_name = msg.get('subject').split(':')[0].split('-')[1].strip()
-        project_id = self.env['project.project'].search(
-            [('name', '=', project_name.upper())])
+        try:
+            project_name = \
+                msg.get('subject').split(':')[0].split('-')[1].strip()
+            project_id = self.env['project.project'].search(
+                [('name', '=', project_name.upper())]).id
+        except IndexError:
+            project_id = False
         create_context = dict(self.env.context or {})
         create_context['default_user_id'] = False
         if custom_values is None:
@@ -31,7 +35,7 @@ class Task(models.Model):
             'email_cc': msg.get('cc'),
             'planned_hours': 0.0,
             'partner_id': msg.get('author_id'),
-            'project_id': project_id.id or 2
+            'project_id': project_id or 1
         }
         defaults.update(custom_values)
 
