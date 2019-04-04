@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Inherit Project -->
+        <record id="project_support_package" model="ir.ui.view">
+            <field name="name">project.project.form</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/notebook" position="inside">
+                    <page name="support_package" string="Support Package">
+                        <group name="support_package" string="Support Package">
+                            <field name="support_package_line_ids" nolabel="1" context="{'tree_view_ref':'eco_project_support_package.project_support_package_tree_view'}"/>
+                        </group>
+                        <group name="subtasks" string="Used Man-Hour">
+                            <field name="task_line_ids" nolabel="1"/>
+                        </group>
+                        <group class="oe_subtotal_footer oe_right">
+                            <field name="total_man_hour" widget="float_time"/>
+                            <field name="used_man_hour" widget="float_time"/>
+                            <div class="oe_subtotal_footer_separator oe_inline">
+                                <label for="balance_man_hour"/>
+                            </div>
+                            <field name="balance_man_hour" nolabel="1" class="oe_subtotal_footer_separator" widget="float_time"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="project_support_package_tree_view" model="ir.ui.view">
+            <field name="name">project.support.package.tree.view</field>
+            <field name="model">project.support.package.line</field>
+            <field name="mode">primary</field>
+            <field name="arch" type="xml">
+                <tree string="Support Package" editable="bottom">
+                    <field name="date_start"/>
+                    <field name="date_end"/>
+                    <field name="ref"/>
+                    <field name="name"/>
+                    <field name="duration" widget="float_time" sum="Total"/>
+                </tree>
+            </field>
+        </record>
+
+    </data>
+</odoo>
