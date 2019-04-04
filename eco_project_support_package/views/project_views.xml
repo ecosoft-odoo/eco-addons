@@ -19,10 +19,7 @@
                         <group class="oe_subtotal_footer oe_right">
                             <field name="total_man_hour" widget="float_time"/>
                             <field name="used_man_hour" widget="float_time"/>
-                            <div class="oe_subtotal_footer_separator oe_inline">
-                                <label for="balance_man_hour"/>
-                            </div>
-                            <field name="balance_man_hour" nolabel="1" class="oe_subtotal_footer_separator" widget="float_time"/>
+                            <field name="balance_man_hour" widget="float_time" class="oe_subtotal_footer_separator"/>
                         </group>
                     </page>
                 </xpath>
