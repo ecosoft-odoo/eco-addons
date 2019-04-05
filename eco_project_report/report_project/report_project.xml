@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2019 Ecosoft Co., Ltd.
+  License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl.html).-->
+<odoo>
+
+    <record id="report_project" model="ir.ui.view">
+        <field name="name">report.project</field>
+        <field name="model">report.project</field>
+        <field name="inherit_id" ref="excel_import_export.xlsx_report_view"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='criteria']" position="inside">
+                <group>
+                    <field name="project_id"/>
+                </group>
+                <group>
+                    <field name="state_id"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <act_window id="action_project_export_xlsx"
+        name="Export Excel"
+        res_model="report.project"
+        src_model="project.project"
+        view_mode="form"
+        target="new"
+        context="{
+          'template_domain': [('res_model', '=', 'report.project'),
+                              ('fname', '=', 'report_project.xlsx'),
+                              ('gname', '=', False)],
+        }"/>
+
+</odoo>
