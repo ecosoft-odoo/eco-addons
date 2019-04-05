@@ -16,14 +16,16 @@
                         <group name="subtasks" string="Used Man-Hour">
                             <field name="task_line_ids" nolabel="1"/>
                         </group>
-                        <group class="oe_subtotal_footer oe_right">
-                            <field name="total_man_hour" widget="float_time"/>
-                            <field name="used_man_hour" widget="float_time"/>
-                            <field name="balance_man_hour" widget="float_time" class="oe_subtotal_footer_separator"/>
-                        </group>
                         <group>
-                            <field name="total_stage_close" widget="float_time"/>
-                            <field name="total_stage_not_close" widget="float_time"/>
+                            <group>
+                                <field name="total_stage_close" widget="float_time"/>
+                                <field name="total_stage_not_close" widget="float_time"/>
+                            </group>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_man_hour" widget="float_time"/>
+                                <field name="used_man_hour" widget="float_time"/>
+                                <field name="balance_man_hour" widget="float_time" class="oe_subtotal_footer_separator"/>
+                            </group>
                         </group>
                     </page>
                 </xpath>

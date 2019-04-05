@@ -36,13 +36,13 @@ class Project(models.Model):
         help='Balance Total Man-Hour - Total Used Man-Hour'
     )
     total_stage_close = fields.Float(
-        'Total Stage Close',
+        'Total Task Close',
         compute='_compute_total_stage',
         readonly=True,
         help='Total Man-Hour in stage close',
     )
     total_stage_not_close = fields.Float(
-        'Total Stage Not Close',
+        'Total Task InProgress',
         compute='_compute_total_stage',
         readonly=True,
         help='Total Man-Hour in stage not close',
