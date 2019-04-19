@@ -4,7 +4,7 @@ from odoo import models, fields, api
 
 
 class ProjectSupportPackageLine(models.Model):
-    _name = "project.support.package.line"
+    _name = 'project.support.package.line'
     _description = 'Project Support Package Line'
 
     project_id = fields.Many2one(

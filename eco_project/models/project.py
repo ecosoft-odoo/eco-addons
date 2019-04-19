@@ -3,7 +3,7 @@ from odoo import models, api, _
 
 
 class Task(models.Model):
-    _inherit = "project.task"
+    _inherit = 'project.task'
 
     @api.model
     def message_new(self, msg, custom_values=None):
