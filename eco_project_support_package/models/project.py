@@ -3,7 +3,7 @@ from odoo import models, fields, api
 
 
 class Project(models.Model):
-    _inherit = "project.project"
+    _inherit = 'project.project'
 
     task_line_ids = fields.One2many(
         'account.analytic.line',
