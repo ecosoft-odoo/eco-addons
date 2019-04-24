@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_payment_receipt_document" inherit_id="account.report_payment_receipt_document">
+        <xpath expr="//table[hasclass('table', 'table-sm')]" position="replace">
+            <table class="table table-sm">
+                <t t-set="invoice_lines" t-value="o.get_invoice_lines()"/>
+                <t t-set="display_discount" t-value="any([l.discount for l in invoice_lines])"/>
+                <thead>
+                    <tr>
+                        <th><span>Invoice Number</span></th>
+                        <th><span>Invoice Date</span></th>
+                        <th><span>Desctiption</span></th>
+                        <th class="text-right"><span>Quantity</span></th>
+                        <th class="text-right"><span>Amount</span></th>
+                        <th t-if="display_discount" t-attf-class="text-right {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                            <span>Disc.(%)</span>
+                        </th>
+                        <th class="text-right"><span>Subtotal</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-set="current_subtotal" t-value="0"/>
+                    <tr t-foreach="invoice_lines" t-as="inv_line">
+                        <t t-set="current_subtotal" t-value="current_subtotal + inv_line.price_subtotal"/>
+                        <td><span t-field="inv_line.invoice_id.number"/></td>
+                        <td><span t-field="inv_line.invoice_id.date_invoice"/></td>
+                        <td><span t-field="inv_line.name"/></td>
+                        <td class="text-right"><span t-field="inv_line.quantity"/></td>
+                        <td class="text-right">
+                            <span
+                                t-field="inv_line.price_unit"
+                                t-options='{"widget": "monetary", "display_currency": o.currency_id}'
+                            />
+                        </td>
+                        <td t-if="display_discount" t-attf-class="text-right {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                            <span t-field="inv_line.discount"/>
+                        </td>
+                        <td class="text-right"><span t-field="inv_line.price_subtotal"/></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="clearfix">
+                <div id="total" class="row">
+                    <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
+                        <t t-set="current_tax" t-value="sum(o.invoice_ids.mapped('amount_tax'))"/>
+                        <table class="table table-sm">
+                            <tr class="border-black o_subtotal" style="">
+                                <td><strong>Subtotal</strong></td>
+                                <td class="text-right">
+                                    <span
+                                        t-esc="current_subtotal"
+                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'
+                                    />
+                                </td>
+                            </tr>
+                            <tr style="">
+                                <td><strong>Vat 7%</strong></td>
+                                <td class="text-right o_price_total">
+                                    <span
+                                        t-esc="current_tax"
+                                        t-options='{"widget": "monetary", "display_currency": o.currency_id}'
+                                    />
+                                </td>
+                            </tr>
+                            <tr class="border-black o_total">
+                                <td><strong>Total</strong></td>
+                                <td class="text-right">
+                                    <span t-field="o.amount"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>
