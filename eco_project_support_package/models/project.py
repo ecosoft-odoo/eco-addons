@@ -1,4 +1,6 @@
-# -*- coding: utf-8 -*-
+# Copyright 2019 Ecosoft Co., Ltd (http://ecosoft.co.th/)
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
+
 from odoo import models, fields, api
 
 
@@ -17,23 +19,25 @@ class Project(models.Model):
         'project_id',
         help='Add Support Package Man-Hour.'
     )
-    total_man_hour = fields.Float(
-        'Total Support Package',
+    total_effective_package = fields.Float(
         compute='_compute_man_hour',
         readonly=True,
-        help='Total Man-Hour in Support Package.'
+        help='Total Man-Hour available in Support Package.'
     )
-    used_man_hour = fields.Float(
-        'Total used Man-Hour',
+    total_used_effective_package = fields.Float(
         compute='_compute_man_hour',
         readonly=True,
-        help='Total Used Man-Hour.'
+        help='Total Used available Man-Hour.'
     )
-    balance_man_hour = fields.Float(
-        'Balance',
+    balance = fields.Float(
         compute='_compute_man_hour',
         readonly=True,
         help='Balance Total Man-Hour - Total Used Man-Hour'
+    )
+    total_effective_package = fields.Float(
+        compute='_compute_man_hour',
+        readonly=True,
+        help='Total Man-Hour effective in Support Package.'
     )
     total_stage_close = fields.Float(
         'Total Task Close',
@@ -51,10 +55,13 @@ class Project(models.Model):
     @api.multi
     def _compute_man_hour(self):
         for rec in self:
-            rec.total_man_hour = \
-                sum(rec.support_package_line_ids.mapped('duration'))
-            rec.used_man_hour = sum(rec.task_line_ids.mapped('unit_amount'))
-            rec.balance_man_hour = rec.total_man_hour - rec.used_man_hour
+            package_line = rec.support_package_line_ids
+            rec.total_effective_package = sum(package_line.mapped('effective'))
+            rec.total_used_effective_package = \
+                sum(rec.task_line_ids.mapped('unit_amount'))
+            rec.balance = \
+                rec.total_effective_package - rec.total_used_effective_package
+            rec.total_effective_package = sum(package_line.mapped('effective'))
 
     @api.multi
     def _compute_total_stage(self):

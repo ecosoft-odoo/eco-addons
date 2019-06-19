@@ -66,10 +66,6 @@ class ReportProject(models.TransientModel):
         Result = self.env['project.task']
         domain = [('project_id', '=', self.project_id.id),
                   ('stage_id', '=', self.state_id.id)]
-        # if self.date_start_filter:
-        #     domain += [('date_start', '>=', self.date_start_filter)]
-        # if self.date_end_filter:
-        #     domain += [('date_end', '<=', self.date_end_filter)]
         self.results = Result.search(domain)
 
     @api.multi
