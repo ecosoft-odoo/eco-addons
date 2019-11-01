@@ -14,27 +14,20 @@
                     1: {
                         '_HEAD_': {
                             'A2': 'project_id.name${value or ""}#{align=center;style=text}',
-                            'B3': 'project_id.total_effective_package${value or 0}#{align=right;style=number}',
-                            'B4': 'project_id.total_used_effective_package${value or 0}#{align=right;style=number}',
+                            'B3': 'project_id.total_package_not_exp${value or 0}#{align=right;style=number}',
+                            'B4': 'project_id.total_used_not_exp${value or 0}#{align=right;style=number}',
                             'B5': 'project_id.balance${value or 0}#{align=right;style=number}',
-                            'E3': 'project_id.total_stage_close${value or 0}#{align=right;style=number}',
-                            'E4': 'project_id.total_stage_not_close${value or 0}#{align=right;style=number}',
+                        },
+                        'results_package': {
+                            'A8': 'date_start${value or ""}#{style=date}',
+                            'B8': 'date_end${value or ""}#{style=date}',
+                            'C8': 'ref${value or ""}#{style=text}',
+                            'D8': 'name${value or ""}#{style=text}',
+                            'E8': 'duration${value or 0}#{style=number}',
+                            'F8': 'used_time_package${value or 0}#{style=number}@{sum}',
                         },
                     },
                     2: {
-                        '_HEAD_': {
-                            'A2': 'project_id.name${value or ""}#{align=center;style=text}',
-                        },
-                        'results_package': {
-                            'A4': 'date_start${value or ""}#{style=date}',
-                            'B4': 'date_end${value or ""}#{style=date}',
-                            'C4': 'ref${value or ""}#{style=text}',
-                            'D4': 'name${value or ""}#{style=text}',
-                            'E4': 'duration${value or 0}#{style=number}',
-                            'F4': 'effective${value or 0}#{style=number}',
-                        },
-                    },
-                    3: {
                         '_HEAD_': {
                             'A2': 'project_id.name${value or ""}#{align=center;style=text}',
                         },
@@ -45,7 +38,8 @@
                             'D4': 'date_end${value or ""}#{style=date}',
                             'E4': 'stage_id${value and value.name or ""}#{style=text}',
                             'F4': 'name${value and value or ""}#{style=text}',
-                            'G4': 'effective_hours${value or 0}#{style=number}',
+                            'G4': 'effective_hours${value or 0}#{style=number}@{sum}',
+                            'H4': 'package_name${value or ""}#{style=text}',
                         },
                     },
                 },

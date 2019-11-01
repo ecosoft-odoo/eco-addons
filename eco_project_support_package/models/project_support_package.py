@@ -39,16 +39,25 @@ class ProjectSupportPackageLine(models.Model):
         readonly=True,
         help='Package effective Man-Hour'
     )
+    used_time_package = fields.Float(
+        string='Used (hours)',
+        compute='_compute_effective',
+        readonly=True,
+        help='Package Used Time Package'
+    )
 
     def _compute_effective(self):
         for rec in self:
+            total_used = sum(rec.env['account.analytic.line'].search([
+                ('project_id', '=', rec.project_id.id),
+                ('package_id', '=', rec.id)]).mapped('unit_amount'))
+            # not expired
             if rec.date_end >= fields.Date.today():
                 timesheet_hours = rec.duration
             else:
-                timesheet_hours = sum(rec.env['account.analytic.line'].search([
-                    ('project_id', '=', rec.project_id.id),
-                    ('package_id', '=', rec.id)]).mapped('unit_amount'))
+                timesheet_hours = total_used
             rec.effective = timesheet_hours
+            rec.used_time_package = total_used
 
     @api.onchange('date_start')
     def _onchange_date_start(self):

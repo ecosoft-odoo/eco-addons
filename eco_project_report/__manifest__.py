@@ -3,15 +3,18 @@
 
 {
     'name': 'Ecosoft Project Report',
-    'version': '12.0.1.0.0',
+    'version': '12.0.1.1.0',
     'author': 'Ecosoft',
     'license': 'AGPL-3',
     'category': 'Project',
-    'depends': ['excel_import_export',
-             'project'],
-    'data': ['report_project/report_project.xml',
-          'report_project/templates.xml',
-          ],
+    'depends': [
+        'excel_import_export',
+        'project'
+    ],
+    'data': [
+        'report_project/report_project.xml',
+        'report_project/templates.xml',
+    ],
     'installable': True,
     'development_status': 'alpha',
     'maintainers': ['Saran Lim.'],
