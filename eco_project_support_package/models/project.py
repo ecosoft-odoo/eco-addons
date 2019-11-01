@@ -29,6 +29,16 @@ class Project(models.Model):
         readonly=True,
         help='Total Used available Man-Hour.'
     )
+    total_package_not_exp = fields.Float(
+        compute='_compute_man_hour',
+        readonly=True,
+        help='Total Support Man-Hour. (Not Expiry)'
+    )
+    total_used_not_exp = fields.Float(
+        compute='_compute_man_hour',
+        readonly=True,
+        help='Total Used Man-Hour. (Not Expiry)'
+    )
     balance = fields.Float(
         compute='_compute_man_hour',
         readonly=True,
@@ -62,6 +72,12 @@ class Project(models.Model):
             rec.balance = \
                 rec.total_effective_package - rec.total_used_effective_package
             rec.total_effective_package = sum(package_line.mapped('effective'))
+            rec.total_package_not_exp = sum(package_line.filtered(
+                lambda l: l.date_end >= fields.Date.today()
+            ).mapped('duration'))
+            rec.total_used_not_exp = sum(package_line.filtered(
+                lambda l: l.date_end >= fields.Date.today()
+            ).mapped('used_time_package'))
 
     @api.multi
     def _compute_total_stage(self):

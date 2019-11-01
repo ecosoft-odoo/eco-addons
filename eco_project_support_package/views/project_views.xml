@@ -41,6 +41,7 @@
                 <field name="ref"/>
                 <field name="name"/>
                 <field name="duration" widget="float_time" sum="Total Duration"/>
+                <field name="used_time_package" widget="float_time" sum="Total Used"/>
                 <field name="effective" widget="float_time" sum="Total Effective"/>
             </tree>
         </field>
