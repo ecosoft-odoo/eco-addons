@@ -7,9 +7,11 @@ class AccountAnalyticLine(models.Model):
 
     package_id = fields.Many2one(
         'project.support.package.line',
-        required=True,
         domain=lambda self: self._domain_package_id(),
         default=lambda self: self._default_package_id(),
+    )
+    has_expiry = fields.Boolean(
+        related='task_id.expiry',
     )
 
     def _default_package_id(self):

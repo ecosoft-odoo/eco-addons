@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Project -->
+    <record id="project_support_package" model="ir.ui.view">
+        <field name="name">project.project.form</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_send_email" class="oe_highlight" string="Send Email" type="object"/>
+            </xpath>
+            <xpath expr="//page[@name='emails']//group[@name='group_alias']" position="inside">
+                <field name="email_cc" class="oe_inline"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

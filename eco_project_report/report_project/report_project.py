@@ -14,6 +14,31 @@ class ReportProjectView(models.TransientModel):
     package_name = fields.Char()
 
 
+class ReportPackageView(models.TransientModel):
+    _name = 'report.package.view'
+    _description = 'Report Package View'
+    _inherit = 'project.support.package.line'
+    _order = 'id'
+
+    used_time_package_exp = fields.Float(compute='_compute_used_time_exp')
+    package_id = fields.Integer()
+
+    def _compute_used_time_exp(self):
+        for rec in self:
+            task_line = rec.env['account.analytic.line']
+            line_package_exp = task_line.search([
+                ('project_id', '=', rec.project_id.id),
+                ('package_id', '=', False)])
+            used_time_package = task_line.search([
+                ('project_id', '=', rec.project_id.id),
+                ('package_id', '=', rec.package_id)])
+            rec.used_time_package_exp = \
+                sum(used_time_package.mapped('unit_amount'))
+            for line in line_package_exp:
+                if rec.duration and rec.date_end < line.date:
+                    rec.used_time_package_exp += line.unit_amount
+
+
 class ReportProject(models.TransientModel):
     _name = 'report.project'
     _description = 'Wizard for report.project'
@@ -36,19 +61,25 @@ class ReportProject(models.TransientModel):
         default=lambda self: self._get_stage_close(),
         help='closed is "True" in stage configuration',
     )
-
-    # Report Result, project.task
+    # Result sheet 1
+    results_package = fields.Many2many(
+        comodel_name='report.package.view',
+        string='Results Package',
+        compute='_compute_results_package',
+        help='Use compute fields, so there is nothing stored in database',
+    )
+    # Result sheet 2
     results = fields.Many2many(
         comodel_name='report.project.view',
         string='Results',
         compute='_compute_results',
         help='Use compute fields, so there is nothing stored in database',
     )
-    # Report Result, project.support.package.line
-    results_package = fields.Many2many(
-        comodel_name='project.support.package.line',
-        string='Results Package',
-        compute='_compute_results_package',
+    # Result sheet 3
+    results_inprogress = fields.Many2many(
+        comodel_name='project.task',
+        string='Results In-Progress',
+        compute='_compute_results_inprogress',
         help='Use compute fields, so there is nothing stored in database',
     )
 
@@ -66,6 +97,12 @@ class ReportProject(models.TransientModel):
                 Please configuration stage in project."))
         return stage
 
+    def _get_used_time_exp_package(self, line):
+        package = self.project_id.support_package_line_ids.filtered(
+            lambda l: l.id == line.get('id'))
+        balance = package.duration - package.used_time_package
+        return balance
+
     @api.multi
     def _compute_results(self):
         """ On the wizard, result will be computed and added to results line
@@ -76,7 +113,8 @@ class ReportProject(models.TransientModel):
             SELECT pt.*, string_agg(distinct pspl.name, ',') as package_name
             FROM project_task pt
             JOIN account_analytic_line aal ON aal.task_id = pt.id
-            JOIN project_support_package_line pspl ON pspl.id = aal.package_id
+            LEFT JOIN project_support_package_line pspl
+            ON pspl.id = aal.package_id
             WHERE pt.project_id = %s and pt.stage_id = %s
             GROUP BY pt.id
             ORDER BY pt.code
@@ -89,10 +127,32 @@ class ReportProject(models.TransientModel):
 
     @api.multi
     def _compute_results_package(self):
-        """ On the wizard, result will be computed and added to results line
-        before export to excel, by using xlsx.export
-        """
         self.ensure_one()
-        Result = self.env['project.support.package.line']
-        domain = [('project_id', '=', self.project_id.id)]
-        self.results_package = Result.search(domain)
+        self._cr.execute("""
+            SELECT *, id as package_id
+            FROM project_support_package_line
+            WHERE project_id = %s
+        """ % (self.project_id.id))
+
+        results = self._cr.dictfetchall()
+        ReportLine = self.env['report.package.view']
+        for line in results:
+            self.results_package += ReportLine.new(line)
+            # expired
+            if line.get('date_end', False) < fields.Date.today():
+                self.results_package += ReportLine.new(
+                    {'date_start': line.get('date_end', False),
+                     'date_end': line.get('date_end', False),
+                     'name': 'Expiration',
+                     'used_time_package_exp':
+                        self._get_used_time_exp_package(line)})
+
+    @api.multi
+    def _compute_results_inprogress(self):
+        self.ensure_one()
+        # find stage not in 'Done' and 'Cancelled'
+        stage = self.env['project.task.type'].search([('fold', '=', False)])
+        Result = self.env['project.task']
+        domain = [('project_id', '=', self.project_id.id),
+                  ('stage_id', '=', stage.ids)]
+        self.results_inprogress = Result.search(domain)

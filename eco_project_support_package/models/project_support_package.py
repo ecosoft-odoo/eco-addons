@@ -50,7 +50,8 @@ class ProjectSupportPackageLine(models.Model):
         for rec in self:
             total_used = sum(rec.env['account.analytic.line'].search([
                 ('project_id', '=', rec.project_id.id),
-                ('package_id', '=', rec.id)]).mapped('unit_amount'))
+                ('package_id', '=', rec.id)
+            ]).mapped('unit_amount'))
             # not expired
             if rec.date_end >= fields.Date.today():
                 timesheet_hours = rec.duration

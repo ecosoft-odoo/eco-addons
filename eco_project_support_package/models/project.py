@@ -29,15 +29,15 @@ class Project(models.Model):
         readonly=True,
         help='Total Used available Man-Hour.'
     )
-    total_package_not_exp = fields.Float(
+    total_duration_time = fields.Float(
         compute='_compute_man_hour',
         readonly=True,
-        help='Total Support Man-Hour. (Not Expiry)'
+        help='Total Duration Time.'
     )
-    total_used_not_exp = fields.Float(
+    total_used_time = fields.Float(
         compute='_compute_man_hour',
         readonly=True,
-        help='Total Used Man-Hour. (Not Expiry)'
+        help='Total Used Time.'
     )
     balance = fields.Float(
         compute='_compute_man_hour',
@@ -66,18 +66,24 @@ class Project(models.Model):
     def _compute_man_hour(self):
         for rec in self:
             package_line = rec.support_package_line_ids
+            package_exp = package_line.filtered(
+                lambda l: l.date_end < fields.Date.today())
+            task_line_exp = \
+                rec.task_line_ids.filtered(lambda l: not l.package_id)
+
             rec.total_effective_package = sum(package_line.mapped('effective'))
             rec.total_used_effective_package = \
                 sum(rec.task_line_ids.mapped('unit_amount'))
             rec.balance = \
                 rec.total_effective_package - rec.total_used_effective_package
             rec.total_effective_package = sum(package_line.mapped('effective'))
-            rec.total_package_not_exp = sum(package_line.filtered(
-                lambda l: l.date_end >= fields.Date.today()
-            ).mapped('duration'))
-            rec.total_used_not_exp = sum(package_line.filtered(
-                lambda l: l.date_end >= fields.Date.today()
-            ).mapped('used_time_package'))
+            rec.total_duration_time = sum(package_line.mapped('duration'))
+
+            rec.total_used_time = sum(package_line.mapped('used_time_package'))
+            for line in package_exp:
+                rec.total_used_time += (line.duration - line.used_time_package)
+            for task_line in task_line_exp:
+                rec.total_used_time += task_line.unit_amount
 
     @api.multi
     def _compute_total_stage(self):
@@ -88,3 +94,9 @@ class Project(models.Model):
             rec.total_stage_not_close = \
                 sum(rec.task_line_ids.filtered(lambda self:
                     not self.task_id.stage_id.closed).mapped('unit_amount'))
+
+
+class Task(models.Model):
+    _inherit = 'project.task'
+
+    expiry = fields.Boolean()

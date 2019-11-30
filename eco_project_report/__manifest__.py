@@ -3,13 +3,14 @@
 
 {
     'name': 'Ecosoft Project Report',
-    'version': '12.0.1.1.0',
+    'version': '12.0.2.0.0',
     'author': 'Ecosoft',
     'license': 'AGPL-3',
     'category': 'Project',
     'depends': [
         'excel_import_export',
-        'project'
+        'project',
+        'eco_project_support_package',
     ],
     'data': [
         'report_project/report_project.xml',

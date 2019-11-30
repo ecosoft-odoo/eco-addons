@@ -52,8 +52,12 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="hr_timesheet.view_task_form2_inherited"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='planned_hours']" position="after">
+                <field name="expiry"/>
+            </xpath>
             <xpath expr="//field[@name='timesheet_ids']/tree" position="inside">
-                <field name="package_id"/>
+                <field name="has_expiry" invisible="1"/>
+                <field name="package_id" attrs="{'required': [('has_expiry', '=', False)]}"/>
             </xpath>
         </field>
     </record>
