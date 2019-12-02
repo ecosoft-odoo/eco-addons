@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="email_support_template" model="mail.template">
+        <field name="name">Email Support Package</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="auto_delete" eval="True"/>
+        <field name="email_from">${(object.res_user_id.email}</field>
+        <field name="email_to">${object.partner_id.email}</field>
+        <field name="email_cc">${object.email_cc}</field>
+        <field name="subject">${object.name} - Support Report - ${(datetime.date.today().replace(day=1) - datetime.timedelta(days=1)).strftime('%B %Y')}</field>
+        <field name="body_html"><![CDATA[
+        <p>Dear K.${object.partner_id.name},</p>
+        <p>
+        Please find the attached support summary report for ${(datetime.date.today().replace(day=1) - datetime.timedelta(days=1)).strftime('%B %Y')}.<br/>
+        The balance is ${object.balance} hours.<br/>
+        The package expiry date is ${object.support_package_line_ids[-1].date_end.strftime('%d %B %Y')}
+        </p>
+        <p>
+        Regards,<br/>
+        Support Team
+        </p>
+        ]]>
+        </field>
+    </record>
+
+    <record id="email_support_expiry_template" model="mail.template">
+        <field name="name">Email Support Package Expiry</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="auto_delete" eval="True"/>
+        <field name="email_from">${(object.res_user_id.email}</field>
+        <field name="email_to">${object.partner_id.email}</field>
+        <field name="email_cc">${object.email_cc}</field>
+        <field name="subject">${object.name} - Support Report - ${(datetime.date.today().replace(day=1) - datetime.timedelta(days=1)).strftime('%B %Y')}</field>
+        <field name="body_html"><![CDATA[
+        <p>Dear K.${object.partner_id.name},</p>
+        <p>
+        Please find the attached support summary report for ${(datetime.date.today().replace(day=1) - datetime.timedelta(days=1)).strftime('%B %Y')}.<br/>
+        This package expired ${object.support_package_line_ids[-1].date_end.strftime('%d %B %Y')}
+        </p>
+        <p>
+        Sincerely,<br/>
+        Support Team
+        </p>
+        ]]>
+        </field>
+    </record>
+</odoo>

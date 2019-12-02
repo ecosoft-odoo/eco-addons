@@ -14,8 +14,8 @@
                     1: {
                         '_HEAD_': {
                             'A2': 'project_id.name${value or ""}#{align=center;style=text}',
-                            'B3': 'project_id.total_package_not_exp${value or 0}#{align=right;style=number}',
-                            'B4': 'project_id.total_used_not_exp${value or 0}#{align=right;style=number}',
+                            'B3': 'project_id.total_duration_time${value or 0}#{align=right;style=number}',
+                            'B4': 'project_id.total_used_time${value or 0}#{align=right;style=number}',
                             'B5': 'project_id.balance${value or 0}#{align=right;style=number}',
                         },
                         'results_package': {
@@ -23,8 +23,8 @@
                             'B8': 'date_end${value or ""}#{style=date}',
                             'C8': 'ref${value or ""}#{style=text}',
                             'D8': 'name${value or ""}#{style=text}',
-                            'E8': 'duration${value or 0}#{style=number}',
-                            'F8': 'used_time_package${value or 0}#{style=number}@{sum}',
+                            'E8': 'duration${value or 0}#{style=number}@{sum}',
+                            'F8': 'used_time_package_exp${value or 0}#{style=number}@{sum}',
                         },
                     },
                     2: {
@@ -40,6 +40,13 @@
                             'F4': 'name${value and value or ""}#{style=text}',
                             'G4': 'effective_hours${value or 0}#{style=number}@{sum}',
                             'H4': 'package_name${value or ""}#{style=text}',
+                        },
+                    },
+                    3: {
+                        'results_inprogress': {
+                            'A3': 'code${value and value or ""}#{style=text}',
+                            'B3': 'date_start${value and value.strftime("%B %Y") or ""}',
+                            'C3': 'name${value and value or ""}#{style=text}',
                         },
                     },
                 },
