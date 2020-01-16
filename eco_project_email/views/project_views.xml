@@ -10,7 +10,7 @@
                 <button name="action_send_email" class="oe_highlight" string="Send Email" type="object"/>
             </xpath>
             <xpath expr="//page[@name='emails']//group[@name='group_alias']" position="inside">
-                <field name="email_cc" class="oe_inline"/>
+                <field name="email_cc" widget="email" class="oe_inline"/>
             </xpath>
         </field>
     </record>

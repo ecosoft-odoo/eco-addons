@@ -25,7 +25,8 @@ class Project(models.Model):
             default_model='project.project',
             default_use_template=bool(support_template_id),
             default_template_id=support_template_id,
-            custom_layout='mail.mail_notification_light'
+            custom_layout='mail.mail_notification_light',
+            default_email_cc=self.email_cc,
         )
         return {
             'type': 'ir.actions.act_window',
