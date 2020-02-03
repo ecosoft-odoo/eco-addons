@@ -4,9 +4,8 @@
         <field name="name">Email Support Package</field>
         <field name="model_id" ref="project.model_project_project"/>
         <field name="auto_delete" eval="True"/>
-        <field name="email_from">${(object.res_user_id.email}</field>
+        <field name="email_from">${object.user_id.email}</field>
         <field name="email_to">${object.partner_id.email}</field>
-        <field name="email_cc">${object.email_cc}</field>
         <field name="subject">${object.name} - Support Report - ${(datetime.date.today().replace(day=1) - datetime.timedelta(days=1)).strftime('%B %Y')}</field>
         <field name="body_html"><![CDATA[
         <p>Dear K.${object.partner_id.name},</p>
@@ -27,9 +26,8 @@
         <field name="name">Email Support Package Expiry</field>
         <field name="model_id" ref="project.model_project_project"/>
         <field name="auto_delete" eval="True"/>
-        <field name="email_from">${(object.res_user_id.email}</field>
+        <field name="email_from">${object.user_id.email}</field>
         <field name="email_to">${object.partner_id.email}</field>
-        <field name="email_cc">${object.email_cc}</field>
         <field name="subject">${object.name} - Support Report - ${(datetime.date.today().replace(day=1) - datetime.timedelta(days=1)).strftime('%B %Y')}</field>
         <field name="body_html"><![CDATA[
         <p>Dear K.${object.partner_id.name},</p>

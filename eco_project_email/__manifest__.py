@@ -3,7 +3,7 @@
 
 {
     'name': 'Ecosoft Project Send Email',
-    'version': '12.0.1.0.0',
+    'version': '12.0.1.1.0',
     'author': 'Ecosoft',
     'license': 'AGPL-3',
     'category': 'Project',
