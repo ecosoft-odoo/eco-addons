@@ -42,4 +42,31 @@
         ]]>
         </field>
     </record>
+
+    <record id="email_support_new_customer_template" model="mail.template">
+        <field name="name">Email Support New Customer</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="auto_delete" eval="True"/>
+        <field name="email_from">${object.user_id.email}</field>
+        <field name="email_to">${object.partner_id.email}</field>
+        <field name="subject">(สำคัญ) การส่งข้อความเข้าระบบ Support</field>
+        <field name="body_html"><![CDATA[
+        <p>เรียน ผู้ใช้ระบบทุกท่าน</p>
+        <p>
+        ${user.company_id.name} ขอเรียนให้ทราบว่า<br/>
+        ${object.partner_id.parent_id.name} มีการซื้อการ Support จำนวน ${object.balance} ชั่วโมง<br/>
+        ซึ่งจะมีระยะเวลาการใช้งาน 1 ปี เริ่มตั้งแต่วันที่ ${object.support_package_line_ids[-1].date_start.strftime('%d %B %Y')} ถึง ${object.support_package_line_ids[-1].date_end.strftime('%d %B %Y')}<br/>
+        <br/>
+        เมื่อเกิดข้อสงสัยหรือปัญหาจะมีขั้นตอนและวิธีการเปิด Support ดังนี้<br/>
+            1. ส่ง e-mail ไปที่ support@ecosoft.co.th<br/>
+            2. ระบุหัวข้อ e-mail ขึ้นต้นว่า "Support-${object.name}: หัวข้อปัญหา"<br/>
+            3. เขียนรายละเอียดเนื้อหา และแนบรูปภาพประกอบ (ถ้ามี)
+        </p>
+        <p>
+        ขอแสดงความนับถือ<br/>
+        Support Team
+        </p>
+        ]]>
+        </field>
+    </record>
 </odoo>
